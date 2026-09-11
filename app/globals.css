@@ -217,6 +217,48 @@ button.outline,
   border-top: 0;
   border-radius: 0 0 12px 12px;
 }
+.super-bowl-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px 20px;
+  margin: 14px 0;
+  padding: 18px;
+  border: 1px solid #d8c46e;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fffbea, #f4f0d2);
+}
+.super-bowl-copy h2 {
+  margin: 4px 0;
+  font-size: 19px;
+}
+.super-bowl-copy p {
+  margin: 0;
+  font-size: 12px;
+}
+.super-bowl-card form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.super-bowl-card select {
+  min-width: 190px;
+  border: 1px solid #cfc697;
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+  color: var(--foreground);
+}
+.super-bowl-card .primary {
+  padding: 11px 14px;
+}
+.super-bowl-deadline {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #776b36;
+  font-size: 11px;
+}
 .pick-progress > div:first-child {
   margin-bottom: 12px;
   font-size: 14px;
@@ -796,6 +838,10 @@ button.outline,
   background: #eadff2;
   color: #69417b;
 }
+.player-tag.nostradamus {
+  background: #dcebdc;
+  color: #2e683a;
+}
 .badge-info {
   position: relative;
   display: flex;
@@ -1175,6 +1221,17 @@ button.outline,
 [data-theme='dark'] .badge-info [role='tooltip'] {
   background: #182829;
 }
+[data-theme='dark'] .super-bowl-card {
+  background: linear-gradient(135deg, #2e2b1d, #25281e);
+  border-color: #6f6330;
+}
+[data-theme='dark'] .super-bowl-card select {
+  background: #152425;
+  border-color: #596247;
+}
+[data-theme='dark'] .super-bowl-deadline {
+  color: #d1c47f;
+}
 [data-theme='dark'] .published-team {
   background: #18372f;
   color: #83dfbe;
@@ -1209,6 +1266,16 @@ button {
   min-height: 90px;
 }
 @media (max-width: 760px) {
+  .super-bowl-card {
+    grid-template-columns: 1fr;
+  }
+  .super-bowl-card form {
+    flex-wrap: wrap;
+  }
+  .super-bowl-card select {
+    min-width: 0;
+    flex: 1 1 180px;
+  }
   .standings-grid {
     grid-template-columns: 1fr;
   }

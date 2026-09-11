@@ -39,7 +39,7 @@ import {
   AlertDialogAction,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import { fallbackGames, team, type Game } from '@/lib/games';
+import { fallbackGames, team, teams, type Game } from '@/lib/games';
 type League = { id: string; name: string; owner: string; code: string };
 type Member = { id: string; name: string; favoriteTeam?: string | null };
 type Standing = Member & {
@@ -58,6 +58,7 @@ type Standing = Member & {
   missedPickWeekly: number;
   missedPickMonthly: number;
   missedPickSeason: number;
+  nostradamus: boolean;
 };
 type MemberCompletion = Member & { picked: number };
 type State = {
@@ -82,8 +83,15 @@ type State = {
   members: Member[];
   standings: Standing[];
   scheduleOfficial: boolean;
+  superBowlPick: string | null;
+  superBowlWinner: string | null;
+  superBowlDeadline: number;
+  superBowlLocked: boolean;
   serverNow: number;
 };
+const teamChoices = [...teams].sort((a, b) =>
+  String(a[2]).localeCompare(String(b[2])),
+);
 const nav = [
   ['picks', 'Picks', Zap],
   ['standings', 'Standings', Trophy],
@@ -504,6 +512,88 @@ export default function PickApp() {
               </div>
               {view === 'picks' ? (
                 <>
+                  {data && (
+                    <section className="super-bowl-card">
+                      <div className="super-bowl-copy">
+                        <span className="eyebrow">SEASON PREDICTION</span>
+                        <h2>Who wins the Super Bowl?</h2>
+                        <p>
+                          No points. Correct picks earn the NOSTRADAMUS badge.
+                        </p>
+                      </div>
+                      <form
+                        key={`${data.league}-${data.superBowlPick ?? 'empty'}`}
+                        onSubmit={async (event) => {
+                          event.preventDefault();
+                          const selected = new FormData(
+                            event.currentTarget,
+                          ).get('team');
+                          await mutate(
+                            { action: 'super-bowl-pick', team: selected },
+                            'Super Bowl prediction saved.',
+                          );
+                        }}
+                      >
+                        <select
+                          name="team"
+                          aria-label="Super Bowl winner prediction"
+                          required
+                          defaultValue={data.superBowlPick ?? ''}
+                          disabled={data.superBowlLocked || busy || !league}
+                        >
+                          <option value="" disabled>
+                            Choose the champion
+                          </option>
+                          {teamChoices.map((entry) => (
+                            <option key={entry[0]} value={entry[0]}>
+                              {entry[1]} {entry[2]}
+                            </option>
+                          ))}
+                        </select>
+                        {!data.superBowlLocked && league && (
+                          <button className="primary" disabled={busy}>
+                            Save
+                          </button>
+                        )}
+                        {!data.superBowlLocked && data.superBowlPick && (
+                          <button
+                            type="button"
+                            className="text-button"
+                            disabled={busy}
+                            onClick={() =>
+                              void mutate(
+                                { action: 'super-bowl-unpick' },
+                                'Super Bowl prediction removed.',
+                              )
+                            }
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </form>
+                      <div className="super-bowl-deadline">
+                        {data.superBowlLocked ? (
+                          <>
+                            <LockKeyhole size={13} /> Predictions locked
+                          </>
+                        ) : (
+                          <>
+                            Open until{' '}
+                            {new Date(data.superBowlDeadline).toLocaleString(
+                              undefined,
+                              {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                timeZoneName: 'short',
+                              },
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </section>
+                  )}
                   {data && !data.profile.favoriteTeam && (
                     <div className="favorite-required">
                       <div>
@@ -708,6 +798,10 @@ export default function PickApp() {
                             <strong>MAMA PICHAS:</strong> most games that
                             started without a submitted pick.
                           </p>
+                          <p>
+                            <strong>NOSTRADAMUS:</strong> correctly predicted
+                            the Super Bowl champion before Week 5.
+                          </p>
                           <small>
                             Counts follow the selected period. Tied leaders
                             share the badge.
@@ -793,6 +887,11 @@ export default function PickApp() {
                                             MAMA PICHAS ×{missedPickCount}
                                           </span>
                                         )}
+                                      {p.nostradamus && (
+                                        <span className="player-tag nostradamus">
+                                          NOSTRADAMUS
+                                        </span>
+                                      )}
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right score">

@@ -64,6 +64,19 @@ export const picks = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.league, t.user, t.game] })],
 );
+export const superBowlPicks = sqliteTable(
+  'super_bowl_picks',
+  {
+    league: text('league')
+      .notNull()
+      .references(() => leagues.id),
+    user: text('user')
+      .notNull()
+      .references(() => profiles.id),
+    team: text('team').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.league, t.user] })],
+);
 export const results = sqliteTable(
   'results',
   {

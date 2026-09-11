@@ -23,6 +23,12 @@ status,result=request('POST','/api/club',{'action':'create','name':'Local verifi
 league=result['league']
 assert request('GET','/api/club?league=not-a-member')[0]==403
 status,state=request('GET',f'/api/club?week=1&league={league}');assert status==200,state
+assert state['superBowlDeadline']==1791504900000
+if not state['superBowlLocked']:
+ assert request('POST','/api/club',{'action':'super-bowl-pick','league':league,'team':'KC'})[0]==200
+ assert request('GET',f'/api/club?week=1&league={league}')[1]['superBowlPick']=='KC'
+ assert request('POST','/api/club',{'action':'super-bowl-unpick','league':league})[0]==200
+ assert request('POST','/api/club',{'action':'super-bowl-pick','league':league,'team':'KC'})[0]==200
 assert len(state['games'])==16
 assert 'marketOdds' in state
 if state['marketOdds']:

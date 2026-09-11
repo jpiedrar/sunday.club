@@ -3,10 +3,15 @@ import { database, seed } from '@/db/store';
 import { getMarketOdds } from '@/lib/odds';
 import { syncLiveResults } from '@/lib/results';
 import { syncOfficialSchedule } from '@/lib/schedule';
-import type { Game } from '@/lib/games';
+import { teams, type Game } from '@/lib/games';
+import {
+  SUPER_BOWL_PICK_DEADLINE,
+  syncSuperBowlWinner,
+} from '@/lib/super-bowl';
 export const dynamic = 'force-dynamic';
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
+const validTeams = new Set(teams.map((item) => item[0]));
 class Problem extends Error {
   constructor(
     message: string,
@@ -101,12 +106,27 @@ export async function GET(req: Request) {
         marketOdds: await getMarketOdds(week, games),
         standings: [],
         members: [],
+        superBowlPick: null,
+        superBowlWinner: await syncSuperBowlWinner(db),
+        superBowlDeadline: SUPER_BOWL_PICK_DEADLINE,
+        superBowlLocked: serverNow >= SUPER_BOWL_PICK_DEADLINE,
         league: null,
         scheduleOfficial,
         serverNow,
       });
     }
     await membership(league, u.userId);
+    const superBowlWinner = await syncSuperBowlWinner(db);
+    const superBowlPick = await db
+      .prepare('SELECT team FROM super_bowl_picks WHERE league=? AND user=?')
+      .bind(league, u.userId)
+      .first<{ team: string }>();
+    const superBowlPicks = (
+      await db
+        .prepare('SELECT user,team FROM super_bowl_picks WHERE league=?')
+        .bind(league)
+        .all<{ user: string; team: string }>()
+    ).results;
     const selectedLeague = leagues.find((item) => item.id === league);
     let games = (
       await db
@@ -330,7 +350,16 @@ export async function GET(req: Request) {
         if (missed.week >= monthStart && missed.week <= monthEnd)
           stats.missedPickMonthly++;
       }
-      return { ...standing, ...stats };
+      const seasonPrediction = superBowlPicks.find(
+        (prediction) => prediction.user === player.id,
+      );
+      return {
+        ...standing,
+        ...stats,
+        nostradamus: Boolean(
+          superBowlWinner && seasonPrediction?.team === superBowlWinner,
+        ),
+      };
     });
     return json({
       profile,
@@ -352,6 +381,10 @@ export async function GET(req: Request) {
       marketOdds,
       standings: standingsWithBadges,
       members,
+      superBowlPick: superBowlPick?.team ?? null,
+      superBowlWinner,
+      superBowlDeadline: SUPER_BOWL_PICK_DEADLINE,
+      superBowlLocked: serverNow >= SUPER_BOWL_PICK_DEADLINE,
       scheduleOfficial,
       serverNow,
     });
@@ -392,40 +425,6 @@ export async function POST(req: Request) {
     }
     if (action === 'favorite-team') {
       const favoriteTeam = str('favoriteTeam', 3).toUpperCase();
-      const validTeams = new Set([
-        'ARI',
-        'ATL',
-        'BAL',
-        'BUF',
-        'CAR',
-        'CHI',
-        'CIN',
-        'CLE',
-        'DAL',
-        'DEN',
-        'DET',
-        'GB',
-        'HOU',
-        'IND',
-        'JAX',
-        'KC',
-        'LV',
-        'LAC',
-        'LAR',
-        'MIA',
-        'MIN',
-        'NE',
-        'NO',
-        'NYG',
-        'NYJ',
-        'PHI',
-        'PIT',
-        'SEA',
-        'SF',
-        'TB',
-        'TEN',
-        'WAS',
-      ]);
       if (!validTeams.has(favoriteTeam))
         throw new Problem('Choose a valid NFL team.');
       await db
@@ -475,8 +474,44 @@ export async function POST(req: Request) {
     await membership(
       league,
       u.userId,
-      !['pick', 'unpick'].includes(String(action)),
+      !['pick', 'unpick', 'super-bowl-pick', 'super-bowl-unpick'].includes(
+        String(action),
+      ),
     );
+    if (action === 'super-bowl-pick') {
+      const team = str('team', 3).toUpperCase();
+      if (!validTeams.has(team)) throw new Problem('Choose a valid NFL team.');
+      const result = await db
+        .prepare(
+          `INSERT INTO super_bowl_picks(league,user,team) SELECT ?,?,? WHERE unixepoch('now')*1000<? AND EXISTS(SELECT 1 FROM members WHERE league=? AND user=?) ON CONFLICT(league,user) DO UPDATE SET team=excluded.team`,
+        )
+        .bind(
+          league,
+          u.userId,
+          team,
+          SUPER_BOWL_PICK_DEADLINE,
+          league,
+          u.userId,
+        )
+        .run();
+      if (!result.meta.changes)
+        throw new Problem(
+          'Super Bowl predictions locked at the start of Week 5.',
+          409,
+        );
+      return json({ ok: true });
+    }
+    if (action === 'super-bowl-unpick') {
+      const result = await db
+        .prepare(
+          `DELETE FROM super_bowl_picks WHERE league=? AND user=? AND unixepoch('now')*1000<?`,
+        )
+        .bind(league, u.userId, SUPER_BOWL_PICK_DEADLINE)
+        .run();
+      if (!result.meta.changes)
+        throw new Problem('The prediction is already clear or locked.', 409);
+      return json({ ok: true });
+    }
     if (action === 'pick') {
       const favorite = await db
         .prepare('SELECT favorite_team favoriteTeam FROM profiles WHERE id=?')
@@ -590,6 +625,9 @@ export async function POST(req: Request) {
       await db.batch([
         db
           .prepare('DELETE FROM picks WHERE league=? AND user=?')
+          .bind(league, member),
+        db
+          .prepare('DELETE FROM super_bowl_picks WHERE league=? AND user=?')
           .bind(league, member),
         db
           .prepare('DELETE FROM members WHERE league=? AND user=?')
