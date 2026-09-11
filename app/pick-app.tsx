@@ -18,7 +18,6 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
-  Info,
   Flag,
   Flame,
   ShipWheel,
@@ -149,7 +148,7 @@ const badgeIcons = {
   'lone-wolf': PawPrint,
   'upset-king': Crown,
   'no-guts-no-glory': Swords,
-} satisfies Record<BadgeKey, typeof Info>;
+} satisfies Record<BadgeKey, typeof Flag>;
 type State = {
   profile: Member;
   leagues: League[];
@@ -923,46 +922,6 @@ export default function PickApp() {
                           <TabsTrigger value="season">Full season</TabsTrigger>
                         </TabsList>
                       </Tabs>
-                      {badgeOptions.some(({ key }) => badgeEnabled(key)) && (
-                        <div className="badge-info">
-                          <button
-                            type="button"
-                            aria-label="Explain standings badges"
-                            aria-describedby="badge-explanation"
-                          >
-                            <Info size={16} />
-                          </button>
-                          <div id="badge-explanation" role="tooltip">
-                            <b>Standings badges</b>
-                            {badgeOptions
-                              .filter(({ key }) => badgeEnabled(key))
-                              .map((badge) => {
-                                const BadgeIcon = badgeIcons[badge.key];
-                                return (
-                                  <div
-                                    className="badge-legend-item"
-                                    key={badge.key}
-                                  >
-                                    <span
-                                      className={`player-badge ${badge.key}`}
-                                      aria-hidden="true"
-                                    >
-                                      <BadgeIcon size={15} />
-                                    </span>
-                                    <p>
-                                      <strong>{badge.name}</strong>
-                                      <span>{badge.description}</span>
-                                    </p>
-                                  </div>
-                                );
-                              })}
-                            <small>
-                              Counts follow the selected period. Tied leaders
-                              share the badge.
-                            </small>
-                          </div>
-                        </div>
-                      )}
                       {leaderboard.length ? (
                         <Table>
                           <TableHeader>
@@ -1108,6 +1067,44 @@ export default function PickApp() {
                             Find your league
                           </button>
                         </div>
+                      )}
+                      {badgeOptions.some(({ key }) => badgeEnabled(key)) && (
+                        <section
+                          className="badge-legend"
+                          aria-labelledby="badge-legend-title"
+                        >
+                          <div className="badge-legend-heading">
+                            <h3 id="badge-legend-title">Badge legend</h3>
+                            <small>
+                              Counts follow the selected period. Tied leaders
+                              share badges.
+                            </small>
+                          </div>
+                          <div className="badge-legend-grid">
+                            {badgeOptions
+                              .filter(({ key }) => badgeEnabled(key))
+                              .map((badge) => {
+                                const BadgeIcon = badgeIcons[badge.key];
+                                return (
+                                  <div
+                                    className="badge-legend-item"
+                                    key={badge.key}
+                                  >
+                                    <span
+                                      className={`player-badge ${badge.key}`}
+                                      aria-hidden="true"
+                                    >
+                                      <BadgeIcon size={15} />
+                                    </span>
+                                    <p>
+                                      <strong>{badge.name}</strong>
+                                      <span>{badge.description}</span>
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </section>
                       )}
                       <p className="footnote">
                         1 point per correct winner. Ties and cancelled games
