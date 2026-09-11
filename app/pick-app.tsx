@@ -258,6 +258,27 @@ export default function PickApp() {
           ? b.monthly - a.monthly
           : b.season - a.season) || a.name.localeCompare(b.name),
   );
+  const periodCount = (standing: Standing, kind: 'against' | 'wild') => {
+    if (kind === 'against')
+      return period === 'weekly'
+        ? standing.againstTeamWeekly
+        : period === 'monthly'
+          ? standing.againstTeamMonthly
+          : standing.againstTeamSeason;
+    return period === 'weekly'
+      ? standing.wildWeekly
+      : period === 'monthly'
+        ? standing.wildMonthly
+        : standing.wildSeason;
+  };
+  const againstLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'against')),
+  );
+  const wildLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'wild')),
+  );
   const month = Math.ceil(week / 4);
   function smallForm(
     action: string,
@@ -650,18 +671,8 @@ export default function PickApp() {
                                         ? x.monthly
                                         : x.season) === score,
                                 ) + 1;
-                              const againstCount =
-                                period === 'weekly'
-                                  ? p.againstTeamWeekly
-                                  : period === 'monthly'
-                                    ? p.againstTeamMonthly
-                                    : p.againstTeamSeason;
-                              const wildCount =
-                                period === 'weekly'
-                                  ? p.wildWeekly
-                                  : period === 'monthly'
-                                    ? p.wildMonthly
-                                    : p.wildSeason;
+                              const againstCount = periodCount(p, 'against');
+                              const wildCount = periodCount(p, 'wild');
                               return (
                                 <TableRow key={p.id}>
                                   <TableCell>
@@ -675,24 +686,22 @@ export default function PickApp() {
                                   </TableCell>
                                   <TableCell>
                                     <div className="standing-player">
-                                      <div>
-                                        <strong>{p.name}</strong>
-                                        {p.id === data?.profile.id && (
-                                          <span className="you-tag">YOU</span>
-                                        )}
-                                      </div>
-                                      <div className="player-tags">
-                                        {againstCount > 0 && (
+                                      <strong>{p.name}</strong>
+                                      {p.id === data?.profile.id && (
+                                        <span className="you-tag">YOU</span>
+                                      )}
+                                      {againstLeaderCount > 0 &&
+                                        againstCount === againstLeaderCount && (
                                           <span className="player-tag against-team">
                                             AGAINST OWN TEAM ×{againstCount}
                                           </span>
                                         )}
-                                        {wildCount > 0 && (
+                                      {wildLeaderCount > 0 &&
+                                        wildCount === wildLeaderCount && (
                                           <span className="player-tag wild-picker">
                                             WILD PICKER ×{wildCount}
                                           </span>
                                         )}
-                                      </div>
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right score">
