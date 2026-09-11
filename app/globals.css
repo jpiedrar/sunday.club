@@ -869,6 +869,81 @@ button.outline,
   background: #ffe3d7;
   color: #8b3e21;
 }
+.player-badge {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #315c7c;
+  background: #dfeaf5;
+}
+.player-badge.vende-patrias {
+  background: #f5e7e3;
+  color: #884834;
+}
+.player-badge.wild-picker {
+  background: #fff1ca;
+  color: #7c570f;
+}
+.player-badge.mama-pichas,
+.player-badge.upset-king {
+  background: #eadff2;
+  color: #69417b;
+}
+.player-badge.nostradamus {
+  background: #dcebdc;
+  color: #2e683a;
+}
+.player-badge.perfect-week {
+  background: #e7edc5;
+  color: #526019;
+}
+.player-badge.lone-wolf {
+  background: #e6e9ec;
+  color: #45515b;
+}
+.player-badge.no-guts-no-glory {
+  background: #ffe3d7;
+  color: #8b3e21;
+}
+.player-badge [role='tooltip'] {
+  position: absolute;
+  z-index: 8;
+  top: 34px;
+  left: 0;
+  width: 220px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 10px 26px rgba(25, 48, 40, 0.2);
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: 120ms ease;
+  pointer-events: none;
+}
+.player-badge [role='tooltip'] small {
+  color: #708079;
+}
+.player-badge [role='tooltip'] p {
+  margin: 4px 0 0;
+  font-weight: 400;
+}
+.player-badge:hover [role='tooltip'],
+.player-badge:focus-visible [role='tooltip'] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
 .badge-info {
   position: relative;
   display: flex;
@@ -1283,7 +1358,8 @@ button.outline,
 [data-theme='dark'] .favorite-team-avatar {
   background: #eef2ef;
 }
-[data-theme='dark'] .badge-info [role='tooltip'] {
+[data-theme='dark'] .badge-info [role='tooltip'],
+[data-theme='dark'] .player-badge [role='tooltip'] {
   background: #182829;
 }
 [data-theme='dark'] .super-bowl-card {

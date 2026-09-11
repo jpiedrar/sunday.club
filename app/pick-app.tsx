@@ -19,6 +19,15 @@ import {
   Eye,
   EyeOff,
   Info,
+  Flag,
+  Flame,
+  ShipWheel,
+  AlarmClock,
+  Brain,
+  CircleCheckBig,
+  PawPrint,
+  Crown,
+  Swords,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -130,6 +139,17 @@ const badgeOptions: { key: BadgeKey; name: string; description: string }[] = [
     description: 'Most correct Wild or Upset picks.',
   },
 ];
+const badgeIcons = {
+  'vende-patrias': Flag,
+  'wild-picker': Flame,
+  'titanic-musician': ShipWheel,
+  'mama-pichas': AlarmClock,
+  nostradamus: Brain,
+  'perfect-week': CircleCheckBig,
+  'lone-wolf': PawPrint,
+  'upset-king': Crown,
+  'no-guts-no-glory': Swords,
+} satisfies Record<BadgeKey, typeof Info>;
 type State = {
   profile: Member;
   leagues: League[];
@@ -310,6 +330,24 @@ export default function PickApp() {
   const owner = !!league && league.owner === data?.profile.id;
   const badgeEnabled = (badge: BadgeKey) =>
     data?.badgeSettings[badge] !== false;
+  const standingsBadge = (badge: BadgeKey, count?: number) => {
+    const option = badgeOptions.find((item) => item.key === badge)!;
+    const Icon = badgeIcons[badge];
+    return (
+      <button
+        type="button"
+        className={`player-badge ${badge}`}
+        aria-label={`${option.name}${count ? `, ${count}` : ''}: ${option.description}`}
+      >
+        <Icon size={15} aria-hidden="true" />
+        <span role="tooltip">
+          <b>{option.name}</b>
+          {count ? <small> ×{count}</small> : null}
+          <p>{option.description}</p>
+        </span>
+      </button>
+    );
+  };
   const games = data?.games ?? fallbackGames.filter((g) => g.week === week);
   const picks = data?.picks ?? {};
   const count = games.filter((g) => picks[g.id]).length;
@@ -891,32 +929,6 @@ export default function PickApp() {
                           <TabsTrigger value="season">Full season</TabsTrigger>
                         </TabsList>
                       </Tabs>
-                      {badgeOptions.some(({ key }) => badgeEnabled(key)) && (
-                        <div className="badge-info">
-                          <button
-                            type="button"
-                            aria-label="Explain standings badges"
-                            aria-describedby="badge-explanation"
-                          >
-                            <Info size={16} />
-                          </button>
-                          <div id="badge-explanation" role="tooltip">
-                            <b>Standings badges</b>
-                            {badgeOptions
-                              .filter(({ key }) => badgeEnabled(key))
-                              .map((badge) => (
-                                <p key={badge.key}>
-                                  <strong>{badge.name}:</strong>{' '}
-                                  {badge.description}
-                                </p>
-                              ))}
-                            <small>
-                              Counts follow the selected period. Tied leaders
-                              share the badge.
-                            </small>
-                          </div>
-                        </div>
-                      )}
                       {leaderboard.length ? (
                         <Table>
                           <TableHeader>
@@ -981,72 +993,64 @@ export default function PickApp() {
                                       )}
                                       {badgeEnabled('vende-patrias') &&
                                         againstLeaderCount > 0 &&
-                                        againstCount === againstLeaderCount && (
-                                          <span className="player-tag against-team">
-                                            VENDE PATRIAS ×{againstCount}
-                                          </span>
+                                        againstCount === againstLeaderCount &&
+                                        standingsBadge(
+                                          'vende-patrias',
+                                          againstCount,
                                         )}
                                       {badgeEnabled('wild-picker') &&
                                         wildLeaderCount > 0 &&
-                                        wildCount === wildLeaderCount && (
-                                          <span className="player-tag wild-picker">
-                                            WILD PICKER ×{wildCount}
-                                          </span>
+                                        wildCount === wildLeaderCount &&
+                                        standingsBadge(
+                                          'wild-picker',
+                                          wildCount,
                                         )}
                                       {badgeEnabled('titanic-musician') &&
                                         favoriteLossLeaderCount > 0 &&
                                         favoriteLossCount ===
-                                          favoriteLossLeaderCount && (
-                                          <span className="player-tag titanic-musician">
-                                            TITANIC MUSICIAN ×
-                                            {favoriteLossCount}
-                                          </span>
+                                          favoriteLossLeaderCount &&
+                                        standingsBadge(
+                                          'titanic-musician',
+                                          favoriteLossCount,
                                         )}
                                       {badgeEnabled('mama-pichas') &&
                                         missedPickLeaderCount > 0 &&
                                         missedPickCount ===
-                                          missedPickLeaderCount && (
-                                          <span className="player-tag mama-pichas">
-                                            MAMA PICHAS ×{missedPickCount}
-                                          </span>
+                                          missedPickLeaderCount &&
+                                        standingsBadge(
+                                          'mama-pichas',
+                                          missedPickCount,
                                         )}
                                       {badgeEnabled('nostradamus') &&
-                                        p.nostradamus && (
-                                          <span className="player-tag nostradamus">
-                                            NOSTRADAMUS
-                                          </span>
-                                        )}
+                                        p.nostradamus &&
+                                        standingsBadge('nostradamus')}
                                       {badgeEnabled('perfect-week') &&
-                                        perfectWeekCount > 0 && (
-                                          <span className="player-tag perfect-week">
-                                            PERFECT WEEK
-                                            {perfectWeekCount > 1
-                                              ? ` ×${perfectWeekCount}`
-                                              : ''}
-                                          </span>
+                                        perfectWeekCount > 0 &&
+                                        standingsBadge(
+                                          'perfect-week',
+                                          perfectWeekCount,
                                         )}
                                       {badgeEnabled('lone-wolf') &&
                                         loneWolfLeaderCount > 0 &&
-                                        loneWolfCount ===
-                                          loneWolfLeaderCount && (
-                                          <span className="player-tag lone-wolf">
-                                            LONE WOLF ×{loneWolfCount}
-                                          </span>
+                                        loneWolfCount === loneWolfLeaderCount &&
+                                        standingsBadge(
+                                          'lone-wolf',
+                                          loneWolfCount,
                                         )}
                                       {badgeEnabled('upset-king') &&
                                         upsetKingLeaderCount > 0 &&
                                         upsetKingCount ===
-                                          upsetKingLeaderCount && (
-                                          <span className="player-tag upset-king">
-                                            UPSET KING ×{upsetKingCount}
-                                          </span>
+                                          upsetKingLeaderCount &&
+                                        standingsBadge(
+                                          'upset-king',
+                                          upsetKingCount,
                                         )}
                                       {badgeEnabled('no-guts-no-glory') &&
                                         gutsLeaderCount > 0 &&
-                                        gutsCount === gutsLeaderCount && (
-                                          <span className="player-tag no-guts">
-                                            NO GUTS, NO GLORY ×{gutsCount}
-                                          </span>
+                                        gutsCount === gutsLeaderCount &&
+                                        standingsBadge(
+                                          'no-guts-no-glory',
+                                          gutsCount,
                                         )}
                                     </div>
                                   </TableCell>
