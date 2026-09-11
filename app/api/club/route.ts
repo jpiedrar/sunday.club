@@ -12,6 +12,17 @@ export const dynamic = 'force-dynamic';
 const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 const validTeams = new Set(teams.map((item) => item[0]));
+const badgeKeys = [
+  'vende-patrias',
+  'wild-picker',
+  'titanic-musician',
+  'mama-pichas',
+  'nostradamus',
+  'perfect-week',
+  'lone-wolf',
+  'upset-king',
+  'no-guts-no-glory',
+] as const;
 class Problem extends Error {
   constructor(
     message: string,
@@ -95,6 +106,7 @@ export async function GET(req: Request) {
         canPublishPicks: false,
         publishedPicks: {},
         offsetPicks: {},
+        badgeSettings: Object.fromEntries(badgeKeys.map((key) => [key, true])),
         startedGames: games
           .filter((game) => game.kickoff <= serverNow)
           .map((game) => game.id),
@@ -117,6 +129,21 @@ export async function GET(req: Request) {
       });
     }
     await membership(league, u.userId);
+    const savedBadgeSettings = (
+      await db
+        .prepare(
+          'SELECT badge,enabled FROM league_badge_settings WHERE league=?',
+        )
+        .bind(league)
+        .all<{ badge: string; enabled: number }>()
+    ).results;
+    const badgeSettings = Object.fromEntries(
+      badgeKeys.map((key) => [
+        key,
+        savedBadgeSettings.find((setting) => setting.badge === key)?.enabled !==
+          0,
+      ]),
+    );
     const superBowlWinner = await syncSuperBowlWinner(db);
     const superBowlPick = await db
       .prepare('SELECT team FROM super_bowl_picks WHERE league=? AND user=?')
@@ -512,6 +539,7 @@ export async function GET(req: Request) {
         Boolean(publishableGameCount?.count),
       publishedPicks,
       offsetPicks,
+      badgeSettings,
       startedGames,
       revealedGames,
       allPicksComplete,
@@ -773,6 +801,31 @@ export async function POST(req: Request) {
         .prepare('UPDATE leagues SET name=? WHERE id=?')
         .bind(str('name', 50), league)
         .run();
+      return json({ ok: true });
+    }
+    if (action === 'badge-settings') {
+      if (
+        !Array.isArray(body.badges) ||
+        body.badges.some(
+          (badge) =>
+            typeof badge !== 'string' ||
+            !badgeKeys.includes(badge as (typeof badgeKeys)[number]),
+        )
+      )
+        throw new Problem('Choose valid league badges.');
+      const enabled = new Set(body.badges as string[]);
+      await db.batch([
+        db
+          .prepare('DELETE FROM league_badge_settings WHERE league=?')
+          .bind(league),
+        ...badgeKeys.map((badge) =>
+          db
+            .prepare(
+              'INSERT INTO league_badge_settings(league,badge,enabled) VALUES(?,?,?)',
+            )
+            .bind(league, badge, enabled.has(badge) ? 1 : 0),
+        ),
+      ]);
       return json({ ok: true });
     }
     if (action === 'rotate') {

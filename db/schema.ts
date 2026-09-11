@@ -19,6 +19,17 @@ export const leagues = sqliteTable('leagues', {
   code: text('code').notNull().unique(),
   season: integer('season').notNull().default(2026),
 });
+export const leagueBadgeSettings = sqliteTable(
+  'league_badge_settings',
+  {
+    league: text('league')
+      .notNull()
+      .references(() => leagues.id),
+    badge: text('badge').notNull(),
+    enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+  },
+  (t) => [primaryKey({ columns: [t.league, t.badge] })],
+);
 export const members = sqliteTable(
   'members',
   {

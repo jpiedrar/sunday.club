@@ -73,6 +73,63 @@ type Standing = Member & {
   nostradamus: boolean;
 };
 type MemberCompletion = Member & { picked: number };
+type BadgeKey =
+  | 'vende-patrias'
+  | 'wild-picker'
+  | 'titanic-musician'
+  | 'mama-pichas'
+  | 'nostradamus'
+  | 'perfect-week'
+  | 'lone-wolf'
+  | 'upset-king'
+  | 'no-guts-no-glory';
+const badgeOptions: { key: BadgeKey; name: string; description: string }[] = [
+  {
+    key: 'vende-patrias',
+    name: 'VENDE PATRIAS',
+    description: 'Most public picks against their own favorite team.',
+  },
+  {
+    key: 'wild-picker',
+    name: 'WILD PICKER',
+    description: 'Most public picks selected by 20% or less of the league.',
+  },
+  {
+    key: 'titanic-musician',
+    name: 'TITANIC MUSICIAN',
+    description: 'Most incorrect picks placed on their own favorite team.',
+  },
+  {
+    key: 'mama-pichas',
+    name: 'MAMA PICHAS',
+    description: 'Most games that started without a submitted pick.',
+  },
+  {
+    key: 'nostradamus',
+    name: 'NOSTRADAMUS',
+    description: 'Correctly predicted the Super Bowl champion before Week 5.',
+  },
+  {
+    key: 'perfect-week',
+    name: 'PERFECT WEEK',
+    description: 'Correctly picked every completed game in a week.',
+  },
+  {
+    key: 'lone-wolf',
+    name: 'LONE WOLF',
+    description: 'Most games as the only member who picked the winner.',
+  },
+  {
+    key: 'upset-king',
+    name: 'UPSET KING',
+    description: 'Most correct picks of the market underdog.',
+  },
+  {
+    key: 'no-guts-no-glory',
+    name: 'NO GUTS, NO GLORY',
+    description: 'Most correct Wild or Upset picks.',
+  },
+];
 type State = {
   profile: Member;
   leagues: League[];
@@ -84,6 +141,7 @@ type State = {
   canPublishPicks: boolean;
   publishedPicks: Record<string, Record<string, string>>;
   offsetPicks: Record<string, string[]>;
+  badgeSettings: Record<BadgeKey, boolean>;
   startedGames: string[];
   revealedGames: string[];
   allPicksComplete: boolean;
@@ -250,6 +308,8 @@ export default function PickApp() {
   }
   const league = data?.leagues.find((l) => l.id === data.league);
   const owner = !!league && league.owner === data?.profile.id;
+  const badgeEnabled = (badge: BadgeKey) =>
+    data?.badgeSettings[badge] !== false;
   const games = data?.games ?? fallbackGames.filter((g) => g.week === week);
   const picks = data?.picks ?? {};
   const count = games.filter((g) => picks[g.id]).length;
@@ -575,7 +635,9 @@ export default function PickApp() {
                         <span className="eyebrow">SEASON PREDICTION</span>
                         <h2>Who wins the Super Bowl?</h2>
                         <p>
-                          No points. Correct picks earn the NOSTRADAMUS badge.
+                          No points.
+                          {badgeEnabled('nostradamus') &&
+                            ' Correct picks earn the NOSTRADAMUS badge.'}
                         </p>
                       </div>
                       <form
@@ -829,58 +891,32 @@ export default function PickApp() {
                           <TabsTrigger value="season">Full season</TabsTrigger>
                         </TabsList>
                       </Tabs>
-                      <div className="badge-info">
-                        <button
-                          type="button"
-                          aria-label="Explain standings badges"
-                          aria-describedby="badge-explanation"
-                        >
-                          <Info size={16} />
-                        </button>
-                        <div id="badge-explanation" role="tooltip">
-                          <b>Standings badges</b>
-                          <p>
-                            <strong>VENDE PATRIAS:</strong> most public picks
-                            against their own favorite team.
-                          </p>
-                          <p>
-                            <strong>WILD PICKER:</strong> most public picks
-                            selected by 20% or less of the league.
-                          </p>
-                          <p>
-                            <strong>TITANIC MUSICIAN:</strong> most incorrect
-                            picks placed on their own favorite team.
-                          </p>
-                          <p>
-                            <strong>MAMA PICHAS:</strong> most games that
-                            started without a submitted pick.
-                          </p>
-                          <p>
-                            <strong>NOSTRADAMUS:</strong> correctly predicted
-                            the Super Bowl champion before Week 5.
-                          </p>
-                          <p>
-                            <strong>PERFECT WEEK:</strong> correctly picked
-                            every completed game in a week.
-                          </p>
-                          <p>
-                            <strong>LONE WOLF:</strong> most games as the only
-                            member who picked the winner.
-                          </p>
-                          <p>
-                            <strong>UPSET KING:</strong> most correct picks of
-                            the market underdog.
-                          </p>
-                          <p>
-                            <strong>NO GUTS, NO GLORY:</strong> most correct
-                            Wild or Upset picks.
-                          </p>
-                          <small>
-                            Counts follow the selected period. Tied leaders
-                            share the badge.
-                          </small>
+                      {badgeOptions.some(({ key }) => badgeEnabled(key)) && (
+                        <div className="badge-info">
+                          <button
+                            type="button"
+                            aria-label="Explain standings badges"
+                            aria-describedby="badge-explanation"
+                          >
+                            <Info size={16} />
+                          </button>
+                          <div id="badge-explanation" role="tooltip">
+                            <b>Standings badges</b>
+                            {badgeOptions
+                              .filter(({ key }) => badgeEnabled(key))
+                              .map((badge) => (
+                                <p key={badge.key}>
+                                  <strong>{badge.name}:</strong>{' '}
+                                  {badge.description}
+                                </p>
+                              ))}
+                            <small>
+                              Counts follow the selected period. Tied leaders
+                              share the badge.
+                            </small>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       {leaderboard.length ? (
                         <Table>
                           <TableHeader>
@@ -943,19 +979,22 @@ export default function PickApp() {
                                       {p.id === data?.profile.id && (
                                         <span className="you-tag">YOU</span>
                                       )}
-                                      {againstLeaderCount > 0 &&
+                                      {badgeEnabled('vende-patrias') &&
+                                        againstLeaderCount > 0 &&
                                         againstCount === againstLeaderCount && (
                                           <span className="player-tag against-team">
                                             VENDE PATRIAS ×{againstCount}
                                           </span>
                                         )}
-                                      {wildLeaderCount > 0 &&
+                                      {badgeEnabled('wild-picker') &&
+                                        wildLeaderCount > 0 &&
                                         wildCount === wildLeaderCount && (
                                           <span className="player-tag wild-picker">
                                             WILD PICKER ×{wildCount}
                                           </span>
                                         )}
-                                      {favoriteLossLeaderCount > 0 &&
+                                      {badgeEnabled('titanic-musician') &&
+                                        favoriteLossLeaderCount > 0 &&
                                         favoriteLossCount ===
                                           favoriteLossLeaderCount && (
                                           <span className="player-tag titanic-musician">
@@ -963,41 +1002,47 @@ export default function PickApp() {
                                             {favoriteLossCount}
                                           </span>
                                         )}
-                                      {missedPickLeaderCount > 0 &&
+                                      {badgeEnabled('mama-pichas') &&
+                                        missedPickLeaderCount > 0 &&
                                         missedPickCount ===
                                           missedPickLeaderCount && (
                                           <span className="player-tag mama-pichas">
                                             MAMA PICHAS ×{missedPickCount}
                                           </span>
                                         )}
-                                      {p.nostradamus && (
-                                        <span className="player-tag nostradamus">
-                                          NOSTRADAMUS
-                                        </span>
-                                      )}
-                                      {perfectWeekCount > 0 && (
-                                        <span className="player-tag perfect-week">
-                                          PERFECT WEEK
-                                          {perfectWeekCount > 1
-                                            ? ` ×${perfectWeekCount}`
-                                            : ''}
-                                        </span>
-                                      )}
-                                      {loneWolfLeaderCount > 0 &&
+                                      {badgeEnabled('nostradamus') &&
+                                        p.nostradamus && (
+                                          <span className="player-tag nostradamus">
+                                            NOSTRADAMUS
+                                          </span>
+                                        )}
+                                      {badgeEnabled('perfect-week') &&
+                                        perfectWeekCount > 0 && (
+                                          <span className="player-tag perfect-week">
+                                            PERFECT WEEK
+                                            {perfectWeekCount > 1
+                                              ? ` ×${perfectWeekCount}`
+                                              : ''}
+                                          </span>
+                                        )}
+                                      {badgeEnabled('lone-wolf') &&
+                                        loneWolfLeaderCount > 0 &&
                                         loneWolfCount ===
                                           loneWolfLeaderCount && (
                                           <span className="player-tag lone-wolf">
                                             LONE WOLF ×{loneWolfCount}
                                           </span>
                                         )}
-                                      {upsetKingLeaderCount > 0 &&
+                                      {badgeEnabled('upset-king') &&
+                                        upsetKingLeaderCount > 0 &&
                                         upsetKingCount ===
                                           upsetKingLeaderCount && (
                                           <span className="player-tag upset-king">
                                             UPSET KING ×{upsetKingCount}
                                           </span>
                                         )}
-                                      {gutsLeaderCount > 0 &&
+                                      {badgeEnabled('no-guts-no-glory') &&
+                                        gutsLeaderCount > 0 &&
                                         gutsCount === gutsLeaderCount && (
                                           <span className="player-tag no-guts">
                                             NO GUTS, NO GLORY ×{gutsCount}
@@ -1398,6 +1443,47 @@ export default function PickApp() {
                       'name',
                       league.name,
                     )}
+                    <form
+                      className="badge-settings-form"
+                      key={`${league.id}-${JSON.stringify(data?.badgeSettings)}`}
+                      onSubmit={async (event) => {
+                        event.preventDefault();
+                        const badges = new FormData(event.currentTarget)
+                          .getAll('badges')
+                          .map(String);
+                        await mutate(
+                          { action: 'badge-settings', badges },
+                          'League badges updated.',
+                        );
+                      }}
+                    >
+                      <div>
+                        <strong>Standings badges</strong>
+                        <small>
+                          Choose which badges appear for everyone in this
+                          league.
+                        </small>
+                      </div>
+                      <div className="badge-settings-list">
+                        {badgeOptions.map((badge) => (
+                          <label key={badge.key}>
+                            <input
+                              type="checkbox"
+                              name="badges"
+                              value={badge.key}
+                              defaultChecked={badgeEnabled(badge.key)}
+                            />
+                            <span>
+                              <b>{badge.name}</b>
+                              <small>{badge.description}</small>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      <button className="primary" disabled={busy}>
+                        Save badge settings
+                      </button>
+                    </form>
                     <p className="footnote">
                       Final scores and standings update automatically from the
                       NFL scoreboard.

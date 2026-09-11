@@ -18,6 +18,10 @@ class Rules(unittest.TestCase):
   self.assertEqual(len({g['id'] for g in games}),256)
   self.assertEqual(len({g[side] for g in games for side in ('away','home')}),32)
   self.assertEqual((games[0]['away'],games[0]['home']),('DET','BUF'))
+ def test_badge_settings_default_and_override(self):
+  self.db.execute("INSERT INTO league_badge_settings VALUES('l','wild-picker',0)")
+  row=self.db.execute("SELECT enabled FROM league_badge_settings WHERE league='l' AND badge='wild-picker'").fetchone()
+  self.assertEqual(row['enabled'],0)
  def setUp(self):
   self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
   for migration in sorted((root/'drizzle').glob('*.sql')):

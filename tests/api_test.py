@@ -23,6 +23,11 @@ status,result=request('POST','/api/club',{'action':'create','name':'Local verifi
 league=result['league']
 assert request('GET','/api/club?league=not-a-member')[0]==403
 status,state=request('GET',f'/api/club?week=1&league={league}');assert status==200,state
+assert all(state['badgeSettings'].values())
+enabled_badges=['perfect-week','lone-wolf']
+assert request('POST','/api/club',{'action':'badge-settings','league':league,'badges':enabled_badges})[0]==200
+configured=request('GET',f'/api/club?week=1&league={league}')[1]['badgeSettings']
+assert {badge for badge,enabled in configured.items() if enabled}==set(enabled_badges)
 assert state['superBowlDeadline']==1791504900000
 if not state['superBowlLocked']:
  assert request('POST','/api/club',{'action':'super-bowl-pick','league':league,'team':'KC'})[0]==200
@@ -77,4 +82,4 @@ status,offset_state=request('GET',f'/api/club?week=2&league={league}');assert st
 assert offset_game['id'] in offset_state['offsetPicks'][offset_state['profile']['id']]
 assert offset_state['publishedPicks'][offset_state['profile']['id']][offset_game['id']]==offset_game['home']
 assert request('POST','/api/club',{'action':'remove','league':league,'member':state['profile']['id']})[0]==400
-print('PASS: official Week 1 schedule and results, live market probabilities, partial pick snapshots, public member progress, automatic full-week reveal, authentication, saved picks, standings and commissioner protection.')
+print('PASS: official schedule and results, market probabilities, badge configuration, pick publication, authentication, standings and commissioner protection.')
