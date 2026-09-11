@@ -64,6 +64,23 @@ export const picks = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.league, t.user, t.game] })],
 );
+export const offsetPickChanges = sqliteTable(
+  'offset_pick_changes',
+  {
+    league: text('league')
+      .notNull()
+      .references(() => leagues.id),
+    user: text('user')
+      .notNull()
+      .references(() => profiles.id),
+    game: text('game')
+      .notNull()
+      .references(() => games.id),
+    team: text('team').notNull(),
+    changedAt: integer('changed_at').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.league, t.user, t.game] })],
+);
 export const superBowlPicks = sqliteTable(
   'super_bowl_picks',
   {

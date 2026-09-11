@@ -71,5 +71,10 @@ assert complete['allPicksComplete'] is True
 assert complete['memberCompletion'][0]['picked']==complete['totalGames']==16
 assert set(complete['revealedGames'])=={game['id'] for game in complete['games']}
 assert len(complete['publishedPicks'][complete['profile']['id']])==16
+offset_game=complete['games'][0]
+assert request('POST','/api/club',{'action':'pick','league':league,'game':offset_game['id'],'team':offset_game['home']})[0]==200
+status,offset_state=request('GET',f'/api/club?week=2&league={league}');assert status==200,offset_state
+assert offset_game['id'] in offset_state['offsetPicks'][offset_state['profile']['id']]
+assert offset_state['publishedPicks'][offset_state['profile']['id']][offset_game['id']]==offset_game['home']
 assert request('POST','/api/club',{'action':'remove','league':league,'member':state['profile']['id']})[0]==400
 print('PASS: official Week 1 schedule and results, live market probabilities, partial pick snapshots, public member progress, automatic full-week reveal, authentication, saved picks, standings and commissioner protection.')

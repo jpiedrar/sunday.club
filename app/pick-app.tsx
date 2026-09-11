@@ -71,6 +71,7 @@ type State = {
   picksPublished: boolean;
   canPublishPicks: boolean;
   publishedPicks: Record<string, Record<string, string>>;
+  offsetPicks: Record<string, string[]>;
   startedGames: string[];
   revealedGames: string[];
   allPicksComplete: boolean;
@@ -1041,18 +1042,25 @@ export default function PickApp() {
                                         const isWildPick =
                                           selectedPercentage !== null &&
                                           selectedPercentage <= 20;
+                                        const isOffset = Boolean(
+                                          data.offsetPicks[member.id]?.includes(
+                                            game.id,
+                                          ),
+                                        );
                                         return (
                                           <TableCell key={member.id}>
                                             <span
                                               className={
                                                 selected
-                                                  ? `published-team${isWildPick ? ' wild-pick' : ''}`
+                                                  ? `published-team${isOffset ? ' offset-pick' : isWildPick ? ' wild-pick' : ''}`
                                                   : 'missing-pick'
                                               }
                                               title={
-                                                isWildPick
-                                                  ? 'Wild pick · selected by 20% or less of the league'
-                                                  : undefined
+                                                isOffset
+                                                  ? 'Offset · changed after publication and currently the league’s only pick for this team'
+                                                  : isWildPick
+                                                    ? 'Wild pick · selected by 20% or less of the league'
+                                                    : undefined
                                               }
                                             >
                                               {selected ??
@@ -1061,8 +1069,12 @@ export default function PickApp() {
                                                 )
                                                   ? 'No pick'
                                                   : 'Not published')}
-                                              {isWildPick && (
-                                                <small>WILD PICK</small>
+                                              {(isOffset || isWildPick) && (
+                                                <small>
+                                                  {isOffset
+                                                    ? 'OFFSET'
+                                                    : 'WILD PICK'}
+                                                </small>
                                               )}
                                             </span>
                                           </TableCell>
@@ -1086,7 +1098,8 @@ export default function PickApp() {
                           </div>
                           <p className="wild-pick-note">
                             WILD marks a team selected by 20% or less of the
-                            league for that matchup.
+                            league for that matchup. OFFSET marks a unique pick
+                            changed after that matchup became public.
                           </p>
                         </>
                       ) : (

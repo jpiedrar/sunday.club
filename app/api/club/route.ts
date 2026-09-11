@@ -94,6 +94,7 @@ export async function GET(req: Request) {
         picksPublished: false,
         canPublishPicks: false,
         publishedPicks: {},
+        offsetPicks: {},
         startedGames: games
           .filter((game) => game.kickoff <= serverNow)
           .map((game) => game.id),
@@ -236,6 +237,19 @@ export async function GET(req: Request) {
       publishedPicks[row.user] ??= {};
       publishedPicks[row.user][row.game] = row.team;
     }
+    const offsetRows = (
+      await db
+        .prepare(
+          `SELECT o.user,o.game FROM offset_pick_changes o JOIN picks p ON p.league=o.league AND p.user=o.user AND p.game=o.game AND p.team=o.team JOIN games g ON g.id=o.game WHERE o.league=? AND g.week=? AND (SELECT COUNT(*) FROM picks same WHERE same.league=o.league AND same.game=o.game AND same.team=o.team)=1`,
+        )
+        .bind(league, week)
+        .all<{ user: string; game: string }>()
+    ).results;
+    const offsetPicks: Record<string, string[]> = {};
+    for (const row of offsetRows) {
+      offsetPicks[row.user] ??= [];
+      offsetPicks[row.user].push(row.game);
+    }
     const monthStart = Math.floor((week - 1) / 4) * 4 + 1;
     const monthEnd = Math.min(monthStart + 3, 18);
     const standings = (
@@ -373,6 +387,7 @@ export async function GET(req: Request) {
         selectedLeague?.owner === u.userId &&
         Boolean(publishableGameCount?.count),
       publishedPicks,
+      offsetPicks,
       startedGames,
       revealedGames,
       allPicksComplete,
@@ -524,6 +539,12 @@ export async function POST(req: Request) {
         );
       const game = str('game');
       const team = str('team', 3);
+      const previous = await db
+        .prepare(
+          `SELECT p.team,(EXISTS(SELECT 1 FROM published_pick_entries e WHERE e.league=p.league AND e.game=p.game) OR (SELECT COUNT(DISTINCT complete.user) FROM picks complete WHERE complete.league=p.league AND complete.game=p.game)=(SELECT COUNT(*) FROM members WHERE league=p.league)) wasPublic FROM picks p WHERE p.league=? AND p.user=? AND p.game=?`,
+        )
+        .bind(league, u.userId, game)
+        .first<{ team: string; wasPublic: number }>();
       const result = await db
         .prepare(
           `INSERT INTO picks(league,user,game,team) SELECT ?,?,g.id,? FROM games g WHERE g.id=? AND g.kickoff>unixepoch('now')*1000 AND g.status='scheduled' AND ? IN (g.away,g.home) AND EXISTS(SELECT 1 FROM members WHERE league=? AND user=?) AND NOT EXISTS(SELECT 1 FROM results WHERE league=? AND game=g.id AND status IN ('final','cancelled')) ON CONFLICT(league,user,game) DO UPDATE SET team=excluded.team`,
@@ -535,6 +556,22 @@ export async function POST(req: Request) {
           'This pick is locked or the team is invalid. Refresh to see the latest game status.',
           409,
         );
+      if (previous && previous.team !== team) {
+        if (previous.wasPublic)
+          await db
+            .prepare(
+              `INSERT INTO offset_pick_changes(league,user,game,team,changed_at) VALUES(?,?,?,?,unixepoch('now')*1000) ON CONFLICT(league,user,game) DO UPDATE SET team=excluded.team,changed_at=excluded.changed_at`,
+            )
+            .bind(league, u.userId, game, team)
+            .run();
+        else
+          await db
+            .prepare(
+              'DELETE FROM offset_pick_changes WHERE league=? AND user=? AND game=?',
+            )
+            .bind(league, u.userId, game)
+            .run();
+      }
       return json({ ok: true });
     }
     if (action === 'unpick') {
@@ -550,6 +587,12 @@ export async function POST(req: Request) {
           'This pick is already clear or locked. Refresh to see the latest game status.',
           409,
         );
+      await db
+        .prepare(
+          'DELETE FROM offset_pick_changes WHERE league=? AND user=? AND game=?',
+        )
+        .bind(league, u.userId, game)
+        .run();
       return json({ ok: true });
     }
     if (action === 'publish-picks') {
@@ -625,6 +668,9 @@ export async function POST(req: Request) {
       await db.batch([
         db
           .prepare('DELETE FROM picks WHERE league=? AND user=?')
+          .bind(league, member),
+        db
+          .prepare('DELETE FROM offset_pick_changes WHERE league=? AND user=?')
           .bind(league, member),
         db
           .prepare('DELETE FROM super_bowl_picks WHERE league=? AND user=?')

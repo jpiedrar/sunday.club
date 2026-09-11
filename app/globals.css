@@ -767,6 +767,17 @@ button.outline,
   line-height: 1;
   white-space: nowrap;
 }
+.published-team.offset-pick {
+  gap: 2px;
+  border: 1px solid #7b66c6;
+  background: #eee9ff;
+  color: #503b9a;
+}
+.published-team.offset-pick small {
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  line-height: 1;
+}
 .wild-pick-note {
   margin: 12px 0 0;
   color: #7b6a49;
@@ -1240,6 +1251,11 @@ button.outline,
   border-color: #b98229;
   background: #3a2d15;
   color: #ffd47a;
+}
+[data-theme='dark'] .published-team.offset-pick {
+  background: #2d2748;
+  border-color: #8e7ada;
+  color: #c4b8ff;
 }
 [data-theme='dark'] .favorite-required {
   background: #302b1d;
