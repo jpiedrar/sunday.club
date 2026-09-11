@@ -28,6 +28,9 @@ if state['marketOdds']:
  assert first_market['away']+first_market['home']==100
  assert first_market['source']
 future=state['games'][-1]
+if not state['profile'].get('favoriteTeam'):
+ assert request('POST','/api/club',{'action':'pick','league':league,'game':future['id'],'team':future['away']})[0]==409
+assert request('POST','/api/club',{'action':'favorite-team','favoriteTeam':future['home']})[0]==200
 assert request('POST','/api/club',{'action':'pick','league':league,'game':future['id'],'team':future['away']})[0]==200
 assert request('POST','/api/club',{'action':'unpick','league':league,'game':future['id']})[0]==200
 status,cleared=request('GET',f'/api/club?week=1&league={league}');assert future['id'] not in cleared['picks']
@@ -42,6 +45,9 @@ status,state=request('GET',f'/api/club?week=1&league={league}');assert state['pi
 assert state['pickCounts'][future['id']][future['away']]==1
 assert state['memberCompletion'][0]['picked']==1 and state['totalGames']==16
 assert state['picksPublished'] is False
+assert state['profile']['favoriteTeam']==future['home']
+assert state['standings'][0]['againstTeamWeekly']==1
+assert state['standings'][0]['wildWeekly']==0
 assert future['id'] not in state['revealedGames']
 assert future['id'] not in state['publishedPicks'].get(state['profile']['id'],{})
 assert len(state['standings'])==1 and state['standings'][0]['monthly']==0 and state['standings'][0]['season']==0

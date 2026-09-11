@@ -8,6 +8,7 @@ import {
 export const profiles = sqliteTable('profiles', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  favoriteTeam: text('favorite_team'),
 });
 export const leagues = sqliteTable('leagues', {
   id: text('id').primaryKey(),

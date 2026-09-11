@@ -40,8 +40,18 @@ import {
 } from '@/components/ui/alert-dialog';
 import { fallbackGames, team, type Game } from '@/lib/games';
 type League = { id: string; name: string; owner: string; code: string };
-type Member = { id: string; name: string };
-type Standing = Member & { weekly: number; monthly: number; season: number };
+type Member = { id: string; name: string; favoriteTeam?: string | null };
+type Standing = Member & {
+  weekly: number;
+  monthly: number;
+  season: number;
+  againstTeamWeekly: number;
+  againstTeamMonthly: number;
+  againstTeamSeason: number;
+  wildWeekly: number;
+  wildMonthly: number;
+  wildSeason: number;
+};
 type MemberCompletion = Member & { picked: number };
 type State = {
   profile: Member;
@@ -434,6 +444,22 @@ export default function PickApp() {
               </div>
               {view === 'picks' ? (
                 <>
+                  {data && !data.profile.favoriteTeam && (
+                    <div className="favorite-required">
+                      <div>
+                        <b>Choose your favorite NFL team</b>
+                        <span>
+                          This is required before you can submit picks.
+                        </span>
+                      </div>
+                      <button
+                        className="outline"
+                        onClick={() => setView('account')}
+                      >
+                        Choose team
+                      </button>
+                    </div>
+                  )}
                   <div className="pick-progress">
                     <div>
                       <b>Your weekly picks</b>
@@ -492,7 +518,13 @@ export default function PickApp() {
                               }
                               aria-pressed={picks[g.id] === id}
                               className={`team ${picks[g.id] === id ? 'chosen' : ''}`}
-                              disabled={locked(g) || busy || loading || !league}
+                              disabled={
+                                locked(g) ||
+                                busy ||
+                                loading ||
+                                !league ||
+                                !data?.profile.favoriteTeam
+                              }
                               onClick={() => {
                                 const removing = picks[g.id] === id;
                                 void mutate(
@@ -618,6 +650,18 @@ export default function PickApp() {
                                         ? x.monthly
                                         : x.season) === score,
                                 ) + 1;
+                              const againstCount =
+                                period === 'weekly'
+                                  ? p.againstTeamWeekly
+                                  : period === 'monthly'
+                                    ? p.againstTeamMonthly
+                                    : p.againstTeamSeason;
+                              const wildCount =
+                                period === 'weekly'
+                                  ? p.wildWeekly
+                                  : period === 'monthly'
+                                    ? p.wildMonthly
+                                    : p.wildSeason;
                               return (
                                 <TableRow key={p.id}>
                                   <TableCell>
@@ -630,10 +674,26 @@ export default function PickApp() {
                                     </span>
                                   </TableCell>
                                   <TableCell>
-                                    <strong>{p.name}</strong>
-                                    {p.id === data?.profile.id && (
-                                      <span className="you-tag">YOU</span>
-                                    )}
+                                    <div className="standing-player">
+                                      <div>
+                                        <strong>{p.name}</strong>
+                                        {p.id === data?.profile.id && (
+                                          <span className="you-tag">YOU</span>
+                                        )}
+                                      </div>
+                                      <div className="player-tags">
+                                        {againstCount > 0 && (
+                                          <span className="player-tag against-team">
+                                            AGAINST OWN TEAM ×{againstCount}
+                                          </span>
+                                        )}
+                                        {wildCount > 0 && (
+                                          <span className="player-tag wild-picker">
+                                            WILD PICKER ×{wildCount}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </TableCell>
                                   <TableCell className="text-right score">
                                     {score}
@@ -1042,6 +1102,49 @@ export default function PickApp() {
                     'name',
                     data.profile.name,
                   )}
+                  <form
+                    className="favorite-team-form"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const favoriteTeam = new FormData(e.currentTarget).get(
+                        'favoriteTeam',
+                      );
+                      await mutate(
+                        { action: 'favorite-team', favoriteTeam },
+                        'Favorite team saved.',
+                      );
+                    }}
+                  >
+                    <label htmlFor="favorite-team">Your favorite team</label>
+                    <div>
+                      <select
+                        id="favorite-team"
+                        name="favoriteTeam"
+                        required
+                        defaultValue={data.profile.favoriteTeam ?? ''}
+                      >
+                        <option value="" disabled>
+                          Choose an NFL team
+                        </option>
+                        {[...fallbackGames]
+                          .flatMap((game) => [game.away, game.home])
+                          .filter((id, index, all) => all.indexOf(id) === index)
+                          .sort((a, b) => team(a)[2].localeCompare(team(b)[2]))
+                          .map((id) => (
+                            <option key={id} value={id}>
+                              {team(id)[1]} {team(id)[2]}
+                            </option>
+                          ))}
+                      </select>
+                      <button className="primary" disabled={busy}>
+                        Save team
+                      </button>
+                    </div>
+                    <small>
+                      Standings count every public pick you make against this
+                      team.
+                    </small>
+                  </form>
                   <p className="footnote">
                     Signed in with ChatGPT. Your picks follow your account
                     across devices.

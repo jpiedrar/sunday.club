@@ -753,6 +753,70 @@ button.outline,
 .standings td {
   padding: 18px 8px;
 }
+.standing-player {
+  display: grid;
+  gap: 7px;
+}
+.player-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.player-tag {
+  display: inline-flex;
+  padding: 4px 6px;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.45px;
+  white-space: nowrap;
+}
+.player-tag.against-team {
+  background: #f5e7e3;
+  color: #884834;
+}
+.player-tag.wild-picker {
+  background: #fff1ca;
+  color: #7c570f;
+}
+.favorite-required {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #e0b85d;
+  border-radius: 10px;
+  background: #fff7df;
+}
+.favorite-required div {
+  display: grid;
+  gap: 3px;
+}
+.favorite-required span,
+.favorite-team-form small {
+  color: #6e766f;
+  font-size: 12px;
+}
+.favorite-team-form {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0;
+}
+.favorite-team-form > div {
+  display: flex;
+  gap: 8px;
+}
+.favorite-team-form select {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px;
+  background: white;
+  color: var(--foreground);
+}
 .score {
   font-size: 23px;
   font-weight: 700;
@@ -1041,6 +1105,13 @@ button.outline,
   border-color: #b98229;
   background: #3a2d15;
   color: #ffd47a;
+}
+[data-theme='dark'] .favorite-required {
+  background: #302b1d;
+  border-color: #705f32;
+}
+[data-theme='dark'] .favorite-team-form select {
+  background: #152425;
 }
 [data-theme='dark'] .message {
   background: #34351f;

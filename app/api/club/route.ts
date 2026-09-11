@@ -51,7 +51,9 @@ export async function GET(req: Request) {
       .bind(u.userId, u.fullName ?? u.email.split('@')[0])
       .run();
     const profile = await db
-      .prepare('SELECT * FROM profiles WHERE id=?')
+      .prepare(
+        'SELECT id,name,favorite_team favoriteTeam FROM profiles WHERE id=?',
+      )
       .bind(u.userId)
       .first();
     const leagues = (
@@ -159,7 +161,7 @@ export async function GET(req: Request) {
     const members = (
       await db
         .prepare(
-          'SELECT p.id,p.name FROM profiles p JOIN members m ON m.user=p.id WHERE m.league=? ORDER BY p.name',
+          'SELECT p.id,p.name,p.favorite_team favoriteTeam FROM profiles p JOIN members m ON m.user=p.id WHERE m.league=? ORDER BY p.name',
         )
         .bind(league)
         .all<{ id: string; name: string }>()
@@ -219,11 +221,79 @@ export async function GET(req: Request) {
     const standings = (
       await db
         .prepare(
-          `SELECT p.id,p.name,COALESCE(SUM(CASE WHEN g.week=? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) weekly,COALESCE(SUM(CASE WHEN g.week BETWEEN ? AND ? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) monthly,COALESCE(SUM(CASE WHEN CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) season FROM members m JOIN profiles p ON p.id=m.user LEFT JOIN picks k ON k.league=m.league AND k.user=m.user LEFT JOIN games g ON g.id=k.game LEFT JOIN results r ON r.league=m.league AND r.game=g.id WHERE m.league=? GROUP BY p.id,p.name`,
+          `SELECT p.id,p.name,p.favorite_team favoriteTeam,COALESCE(SUM(CASE WHEN g.week=? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) weekly,COALESCE(SUM(CASE WHEN g.week BETWEEN ? AND ? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) monthly,COALESCE(SUM(CASE WHEN CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) season FROM members m JOIN profiles p ON p.id=m.user LEFT JOIN picks k ON k.league=m.league AND k.user=m.user LEFT JOIN games g ON g.id=k.game LEFT JOIN results r ON r.league=m.league AND r.game=g.id WHERE m.league=? GROUP BY p.id,p.name,p.favorite_team`,
         )
         .bind(week, monthStart, monthEnd, league)
         .all()
     ).results;
+    const badgeRows = (
+      await db
+        .prepare(
+          `SELECT k.user,k.game,k.team,g.week,g.away,g.home FROM picks k JOIN games g ON g.id=k.game WHERE k.league=? AND (g.kickoff<=? OR (SELECT COUNT(DISTINCT complete.user) FROM picks complete WHERE complete.league=k.league AND complete.game=k.game)=(SELECT COUNT(*) FROM members WHERE league=k.league))
+           UNION ALL
+           SELECT e.user,e.game,e.team,g.week,g.away,g.home FROM published_pick_entries e JOIN games g ON g.id=e.game WHERE e.league=? AND g.kickoff>? AND (SELECT COUNT(DISTINCT complete.user) FROM picks complete WHERE complete.league=e.league AND complete.game=e.game)<>(SELECT COUNT(*) FROM members WHERE league=e.league)`,
+        )
+        .bind(league, serverNow, league, serverNow)
+        .all<{
+          user: string;
+          game: string;
+          team: string;
+          week: number;
+          away: string;
+          home: string;
+        }>()
+    ).results;
+    const countsByGame = new Map<
+      string,
+      { total: number; teams: Map<string, number> }
+    >();
+    for (const row of badgeRows) {
+      const entry = countsByGame.get(row.game) ?? {
+        total: 0,
+        teams: new Map(),
+      };
+      entry.total++;
+      entry.teams.set(row.team, (entry.teams.get(row.team) ?? 0) + 1);
+      countsByGame.set(row.game, entry);
+    }
+    const standingsWithBadges = standings.map((standing) => {
+      const player = standing as Record<string, unknown> & {
+        id: string;
+        favoriteTeam: string | null;
+      };
+      const stats = {
+        againstTeamWeekly: 0,
+        againstTeamMonthly: 0,
+        againstTeamSeason: 0,
+        wildWeekly: 0,
+        wildMonthly: 0,
+        wildSeason: 0,
+      };
+      for (const row of badgeRows.filter((pick) => pick.user === player.id)) {
+        const favoriteTeam = player.favoriteTeam;
+        const against =
+          favoriteTeam !== null &&
+          [row.away, row.home].includes(favoriteTeam) &&
+          row.team !== favoriteTeam;
+        const popularity = countsByGame.get(row.game);
+        const wild =
+          Boolean(popularity?.total) &&
+          (popularity?.teams.get(row.team) ?? 0) * 5 <= popularity!.total;
+        if (against) {
+          stats.againstTeamSeason++;
+          if (row.week === week) stats.againstTeamWeekly++;
+          if (row.week >= monthStart && row.week <= monthEnd)
+            stats.againstTeamMonthly++;
+        }
+        if (wild) {
+          stats.wildSeason++;
+          if (row.week === week) stats.wildWeekly++;
+          if (row.week >= monthStart && row.week <= monthEnd)
+            stats.wildMonthly++;
+        }
+      }
+      return { ...standing, ...stats };
+    });
     return json({
       profile,
       leagues,
@@ -242,7 +312,7 @@ export async function GET(req: Request) {
       memberCompletion,
       totalGames: games.length,
       marketOdds,
-      standings,
+      standings: standingsWithBadges,
       members,
       scheduleOfficial,
       serverNow,
@@ -279,6 +349,50 @@ export async function POST(req: Request) {
       await db
         .prepare('UPDATE profiles SET name=? WHERE id=?')
         .bind(str('name', 40), u.userId)
+        .run();
+      return json({ ok: true });
+    }
+    if (action === 'favorite-team') {
+      const favoriteTeam = str('favoriteTeam', 3).toUpperCase();
+      const validTeams = new Set([
+        'ARI',
+        'ATL',
+        'BAL',
+        'BUF',
+        'CAR',
+        'CHI',
+        'CIN',
+        'CLE',
+        'DAL',
+        'DEN',
+        'DET',
+        'GB',
+        'HOU',
+        'IND',
+        'JAX',
+        'KC',
+        'LV',
+        'LAC',
+        'LAR',
+        'MIA',
+        'MIN',
+        'NE',
+        'NO',
+        'NYG',
+        'NYJ',
+        'PHI',
+        'PIT',
+        'SEA',
+        'SF',
+        'TB',
+        'TEN',
+        'WAS',
+      ]);
+      if (!validTeams.has(favoriteTeam))
+        throw new Problem('Choose a valid NFL team.');
+      await db
+        .prepare('UPDATE profiles SET favorite_team=? WHERE id=?')
+        .bind(favoriteTeam, u.userId)
         .run();
       return json({ ok: true });
     }
@@ -322,6 +436,15 @@ export async function POST(req: Request) {
       !['pick', 'unpick'].includes(String(action)),
     );
     if (action === 'pick') {
+      const favorite = await db
+        .prepare('SELECT favorite_team favoriteTeam FROM profiles WHERE id=?')
+        .bind(u.userId)
+        .first<{ favoriteTeam: string | null }>();
+      if (!favorite?.favoriteTeam)
+        throw new Problem(
+          'Select your favorite NFL team before making picks.',
+          409,
+        );
       const game = str('game');
       const team = str('team', 3);
       const result = await db

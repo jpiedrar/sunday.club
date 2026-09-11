@@ -4,7 +4,7 @@ root=pathlib.Path(__file__).resolve().parents[1]
 source=(root/'app/api/club/route.ts').read_text()
 pick_sql=re.search(r'`(INSERT INTO picks.*?)`',source,re.S).group(1)
 unpick_sql=re.search(r'`(DELETE FROM picks WHERE league=\?.*?)`',source,re.S).group(1)
-score_sql=re.search(r'`(SELECT p.id,p.name,COALESCE.*?)`',source,re.S).group(1)
+score_sql=re.search(r'`(SELECT p.id,p.name,p.favorite_team favoriteTeam,COALESCE.*?)`',source,re.S).group(1)
 reveal_sql=re.search(r'`(SELECT p.user,p.game,p.team FROM picks.*?UNION ALL.*?)`',source,re.S).group(1)
 publication_sql=re.search(r'`(INSERT INTO published_pick_entries.*?)`',source,re.S).group(1)
 class Rules(unittest.TestCase):
@@ -20,7 +20,7 @@ class Rules(unittest.TestCase):
   self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
   for migration in sorted((root/'drizzle').glob('*.sql')):
    self.db.executescript(migration.read_text())
-  self.db.executemany('INSERT INTO profiles VALUES(?,?)',[('a','Alice'),('b','Bob'),('c','Chris')])
+  self.db.executemany('INSERT INTO profiles(id,name) VALUES(?,?)',[('a','Alice'),('b','Bob'),('c','Chris')])
   self.db.executemany('INSERT INTO leagues VALUES(?,?,?,?,?)',[('l','League','a','CODE',2026),('other','Other','c','OTHER',2026)])
   self.db.executemany('INSERT INTO members VALUES(?,?)',[('l','a'),('l','b'),('other','c')])
   self.now=int(time.time())*1000
