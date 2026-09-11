@@ -1,0 +1,58 @@
+"""Integration check against the running local preview; creates a test league."""
+import json,urllib.request,urllib.error
+BASE='http://localhost:3000'
+def request(method,path,body=None,signed=True,origin=None):
+ headers={'Content-Type':'application/json'}
+ if signed:headers['Cookie']='__sites_local_auth=1'
+ if origin:headers['Origin']=origin
+ req=urllib.request.Request(BASE+path,data=json.dumps(body).encode() if body else None,method=method,headers=headers)
+ try:
+  with urllib.request.urlopen(req) as r:return r.status,json.load(r)
+ except urllib.error.HTTPError as e:
+  raw=e.read().decode()
+  try:body=json.loads(raw)
+  except ValueError:body={"error":raw}
+  return e.code,body
+assert request('GET','/api/club',signed=False)[0]==401
+assert request('POST','/api/club',{'action':'create','name':'Blocked'},origin='https://other.test')[0]==403
+status,data=request('GET','/api/club?week=1');assert status==200,(status,data)
+assert data['games'][0]['away']=='NE' and data['games'][0]['home']=='SEA'
+status,result=request('POST','/api/club',{'action':'create','name':'Local verification league'});assert status==200,result
+league=result['league']
+assert request('GET','/api/club?league=not-a-member')[0]==403
+status,state=request('GET',f'/api/club?week=1&league={league}');assert status==200,state
+assert len(state['games'])==16
+assert 'marketOdds' in state
+if state['marketOdds']:
+ first_market=next(iter(state['marketOdds'].values()))
+ assert first_market['away']+first_market['home']==100
+ assert first_market['source']
+future=state['games'][-1]
+assert request('POST','/api/club',{'action':'pick','league':league,'game':future['id'],'team':future['away']})[0]==200
+assert request('POST','/api/club',{'action':'unpick','league':league,'game':future['id']})[0]==200
+status,cleared=request('GET',f'/api/club?week=1&league={league}');assert future['id'] not in cleared['picks']
+assert request('POST','/api/club',{'action':'pick','league':league,'game':future['id'],'team':future['away']})[0]==200
+assert request('POST','/api/club',{'action':'publish-picks','league':league,'week':1})[0]==200
+status,published=request('GET',f'/api/club?week=1&league={league}');assert status==200,published
+assert published['picksPublished'] is True
+assert published['publishedPicks'][published['profile']['id']][future['id']]==future['away']
+assert request('POST','/api/club',{'action':'unpublish-picks','league':league,'week':1})[0]==200
+assert request('POST','/api/club',{'action':'pick','league':league,'game':future['id'],'team':'BAD'})[0]==409
+status,state=request('GET',f'/api/club?week=1&league={league}');assert state['picks'][future['id']]==future['away']
+assert state['pickCounts'][future['id']][future['away']]==1
+assert state['memberCompletion'][0]['picked']==1 and state['totalGames']==16
+assert state['picksPublished'] is False
+assert future['id'] not in state['revealedGames']
+assert future['id'] not in state['publishedPicks'].get(state['profile']['id'],{})
+assert len(state['standings'])==1 and state['standings'][0]['monthly']==0 and state['standings'][0]['season']==0
+status,week_two=request('GET',f'/api/club?week=2&league={league}');assert status==200,week_two
+assert week_two['allPicksComplete'] is False
+for game in week_two['games']:
+ assert request('POST','/api/club',{'action':'pick','league':league,'game':game['id'],'team':game['away']})[0]==200
+status,complete=request('GET',f'/api/club?week=2&league={league}');assert status==200,complete
+assert complete['allPicksComplete'] is True
+assert complete['memberCompletion'][0]['picked']==complete['totalGames']==16
+assert set(complete['revealedGames'])=={game['id'] for game in complete['games']}
+assert len(complete['publishedPicks'][complete['profile']['id']])==16
+assert request('POST','/api/club',{'action':'remove','league':league,'member':state['profile']['id']})[0]==400
+print('PASS: official Week 1 schedule and results, live market probabilities, partial pick snapshots, public member progress, automatic full-week reveal, authentication, saved picks, standings and commissioner protection.')

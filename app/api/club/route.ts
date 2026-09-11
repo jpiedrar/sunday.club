@@ -1,0 +1,435 @@
+import { getChatGPTUser } from '@/app/chatgpt-auth';
+import { database, seed } from '@/db/store';
+import { getMarketOdds } from '@/lib/odds';
+import { syncLiveResults } from '@/lib/results';
+import type { Game } from '@/lib/games';
+export const dynamic = 'force-dynamic';
+const json = (body: unknown, status = 200) =>
+  Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
+class Problem extends Error {
+  constructor(
+    message: string,
+    public status = 400,
+  ) {
+    super(message);
+  }
+}
+async function identity() {
+  const u = await getChatGPTUser();
+  if (!u) throw new Problem('Sign in to save picks and join a league.', 401);
+  return u;
+}
+async function membership(league: string, user: string, owner = false) {
+  const row = await database()
+    .prepare(
+      'SELECT l.* FROM leagues l JOIN members m ON m.league=l.id WHERE l.id=? AND m.user=?',
+    )
+    .bind(league, user)
+    .first<{ id: string; owner: string; code: string; name: string }>();
+  if (!row)
+    throw new Problem(
+      'This league is private. Join with an invite code first.',
+      403,
+    );
+  if (owner && row.owner !== user)
+    throw new Problem('Only the commissioner can do that.', 403);
+  return row;
+}
+function fail(e: unknown) {
+  if (e instanceof Problem) return json({ error: e.message }, e.status);
+  console.error(e);
+  return json({ error: 'Something went wrong. Please try again.' }, 500);
+}
+export async function GET(req: Request) {
+  try {
+    const u = await identity();
+    const db = database();
+    await seed();
+    await db
+      .prepare('INSERT OR IGNORE INTO profiles(id,name) VALUES(?,?)')
+      .bind(u.userId, u.fullName ?? u.email.split('@')[0])
+      .run();
+    const profile = await db
+      .prepare('SELECT * FROM profiles WHERE id=?')
+      .bind(u.userId)
+      .first();
+    const leagues = (
+      await db
+        .prepare(
+          'SELECT l.* FROM leagues l JOIN members m ON m.league=l.id WHERE m.user=? ORDER BY l.name',
+        )
+        .bind(u.userId)
+        .all()
+    ).results;
+    const url = new URL(req.url);
+    const week = Number(url.searchParams.get('week') ?? 1);
+    if (!Number.isInteger(week) || week < 1 || week > 18)
+      throw new Problem('Choose a week from 1 to 18.');
+    const serverNow = Date.now();
+    const league =
+      url.searchParams.get('league') ||
+      (typeof leagues[0]?.id === 'string' ? leagues[0].id : '');
+    if (!league) {
+      const games = (
+        await db
+          .prepare('SELECT * FROM games WHERE week=? ORDER BY kickoff,id')
+          .bind(week)
+          .all<Game>()
+      ).results;
+      return json({
+        profile,
+        leagues,
+        games,
+        picks: {},
+        pickCounts: {},
+        picksPublished: false,
+        canPublishPicks: false,
+        publishedPicks: {},
+        startedGames: games
+          .filter((game) => game.kickoff <= serverNow)
+          .map((game) => game.id),
+        revealedGames: games
+          .filter((game) => game.kickoff <= serverNow)
+          .map((game) => game.id),
+        allPicksComplete: false,
+        memberCompletion: [],
+        totalGames: games.length,
+        marketOdds: await getMarketOdds(week, games),
+        standings: [],
+        members: [],
+        league: null,
+        serverNow,
+      });
+    }
+    await membership(league, u.userId);
+    const selectedLeague = leagues.find((item) => item.id === league);
+    let games = (
+      await db
+        .prepare(
+          `SELECT g.id,g.week,g.away,g.home,g.kickoff,CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END status,CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END winner FROM games g LEFT JOIN results r ON r.game=g.id AND r.league=? WHERE g.week=? ORDER BY g.kickoff,g.id`,
+        )
+        .bind(league, week)
+        .all<Game>()
+    ).results;
+    if (await syncLiveResults(week, games, db)) {
+      games = (
+        await db
+          .prepare(
+            `SELECT g.id,g.week,g.away,g.home,g.kickoff,CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END status,CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END winner FROM games g LEFT JOIN results r ON r.game=g.id AND r.league=? WHERE g.week=? ORDER BY g.kickoff,g.id`,
+          )
+          .bind(league, week)
+          .all<Game>()
+      ).results;
+    }
+    const marketOdds = await getMarketOdds(week, games);
+    const picks = (
+      await db
+        .prepare('SELECT game,team FROM picks WHERE league=? AND user=?')
+        .bind(league, u.userId)
+        .all()
+    ).results;
+    const popularityRows = (
+      await db
+        .prepare(
+          'SELECT game,team,COUNT(*) count FROM picks WHERE league=? AND game IN (SELECT id FROM games WHERE week=?) GROUP BY game,team',
+        )
+        .bind(league, week)
+        .all<{ game: string; team: string; count: number }>()
+    ).results;
+    const pickCounts: Record<string, Record<string, number>> = {};
+    for (const row of popularityRows) {
+      pickCounts[row.game] ??= {};
+      pickCounts[row.game][row.team] = row.count;
+    }
+    const publication = await db
+      .prepare(
+        'SELECT published_at publishedAt FROM pick_publications WHERE league=? AND week=?',
+      )
+      .bind(league, week)
+      .first<{ publishedAt: number }>();
+    const publishableGameCount = await db
+      .prepare(
+        `SELECT COUNT(*) count FROM (SELECT p.game FROM picks p JOIN games g ON g.id=p.game WHERE p.league=? AND g.week=? AND g.kickoff>unixepoch('now')*1000 GROUP BY p.game HAVING COUNT(DISTINCT p.user)=(SELECT COUNT(*) FROM members WHERE league=?))`,
+      )
+      .bind(league, week, league)
+      .first<{ count: number }>();
+    const members = (
+      await db
+        .prepare(
+          'SELECT p.id,p.name FROM profiles p JOIN members m ON m.user=p.id WHERE m.league=? ORDER BY p.name',
+        )
+        .bind(league)
+        .all<{ id: string; name: string }>()
+    ).results;
+    const memberCompletion = (
+      await db
+        .prepare(
+          'SELECT p.id,p.name,(SELECT COUNT(*) FROM picks k JOIN games g ON g.id=k.game WHERE k.league=? AND k.user=p.id AND g.week=?) picked FROM profiles p JOIN members m ON m.user=p.id WHERE m.league=? ORDER BY p.name',
+        )
+        .bind(league, week, league)
+        .all<{ id: string; name: string; picked: number }>()
+    ).results;
+    const allPicksComplete =
+      games.length > 0 &&
+      memberCompletion.length > 0 &&
+      memberCompletion.every((member) => member.picked === games.length);
+    const startedGames = games
+      .filter((game) => game.kickoff <= serverNow)
+      .map((game) => game.id);
+    const snapshotGames = (
+      await db
+        .prepare(
+          'SELECT DISTINCT game FROM published_pick_entries WHERE league=? AND week=?',
+        )
+        .bind(league, week)
+        .all<{ game: string }>()
+    ).results.map((row) => row.game);
+    const revealedGames = allPicksComplete
+      ? games.map((game) => game.id)
+      : [...new Set([...startedGames, ...snapshotGames])];
+    const publishedRows = allPicksComplete
+      ? (
+          await db
+            .prepare(
+              'SELECT p.user,p.game,p.team FROM picks p JOIN games g ON g.id=p.game WHERE p.league=? AND g.week=?',
+            )
+            .bind(league, week)
+            .all<{ user: string; game: string; team: string }>()
+        ).results
+      : (
+          await db
+            .prepare(
+              `SELECT p.user,p.game,p.team FROM picks p JOIN games g ON g.id=p.game WHERE p.league=? AND g.week=? AND g.kickoff<=?
+               UNION ALL
+               SELECT e.user,e.game,e.team FROM published_pick_entries e JOIN games g ON g.id=e.game WHERE e.league=? AND e.week=? AND g.kickoff>?`,
+            )
+            .bind(league, week, serverNow, league, week, serverNow)
+            .all<{ user: string; game: string; team: string }>()
+        ).results;
+    const publishedPicks: Record<string, Record<string, string>> = {};
+    for (const row of publishedRows) {
+      publishedPicks[row.user] ??= {};
+      publishedPicks[row.user][row.game] = row.team;
+    }
+    const monthStart = Math.floor((week - 1) / 4) * 4 + 1;
+    const monthEnd = Math.min(monthStart + 3, 18);
+    const standings = (
+      await db
+        .prepare(
+          `SELECT p.id,p.name,COALESCE(SUM(CASE WHEN g.week=? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) weekly,COALESCE(SUM(CASE WHEN g.week BETWEEN ? AND ? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) monthly,COALESCE(SUM(CASE WHEN CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) season FROM members m JOIN profiles p ON p.id=m.user LEFT JOIN picks k ON k.league=m.league AND k.user=m.user LEFT JOIN games g ON g.id=k.game LEFT JOIN results r ON r.league=m.league AND r.game=g.id WHERE m.league=? GROUP BY p.id,p.name`,
+        )
+        .bind(week, monthStart, monthEnd, league)
+        .all()
+    ).results;
+    return json({
+      profile,
+      leagues,
+      league,
+      games,
+      picks: Object.fromEntries(picks.map((p) => [p.game, p.team])),
+      pickCounts,
+      picksPublished: Boolean(publication),
+      canPublishPicks:
+        selectedLeague?.owner === u.userId &&
+        Boolean(publishableGameCount?.count),
+      publishedPicks,
+      startedGames,
+      revealedGames,
+      allPicksComplete,
+      memberCompletion,
+      totalGames: games.length,
+      marketOdds,
+      standings,
+      members,
+      serverNow,
+    });
+  } catch (e) {
+    return fail(e);
+  }
+}
+export async function POST(req: Request) {
+  try {
+    const origin = req.headers.get('origin');
+    if (origin && origin !== new URL(req.url).origin)
+      throw new Problem('Invalid request origin.', 403);
+    const u = await identity();
+    const db = database();
+    const parsed: unknown = await req.json().catch(() => {
+      throw new Problem('Invalid JSON request.');
+    });
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+      throw new Problem('Invalid request.');
+    const body = parsed as Record<string, unknown>;
+    const action = body.action;
+    const league = typeof body.league === 'string' ? body.league : '';
+    const str = (k: string, max = 80) => {
+      const v = typeof body[k] === 'string' ? body[k].trim() : '';
+      if (!v || v.length > max) throw new Problem(`Please enter a valid ${k}.`);
+      return v;
+    };
+    await db
+      .prepare('INSERT OR IGNORE INTO profiles(id,name) VALUES(?,?)')
+      .bind(u.userId, u.fullName ?? u.email.split('@')[0])
+      .run();
+    if (action === 'profile') {
+      await db
+        .prepare('UPDATE profiles SET name=? WHERE id=?')
+        .bind(str('name', 40), u.userId)
+        .run();
+      return json({ ok: true });
+    }
+    if (action === 'create') {
+      await seed();
+      const id = crypto.randomUUID();
+      const code = crypto
+        .randomUUID()
+        .replaceAll('-', '')
+        .slice(0, 12)
+        .toUpperCase();
+      await db.batch([
+        db
+          .prepare('INSERT INTO leagues(id,name,owner,code) VALUES(?,?,?,?)')
+          .bind(id, str('name', 50), u.userId, code),
+        db
+          .prepare('INSERT INTO members(league,user) VALUES(?,?)')
+          .bind(id, u.userId),
+      ]);
+      return json({ ok: true, league: id });
+    }
+    if (action === 'join') {
+      const row = await db
+        .prepare('SELECT id FROM leagues WHERE code=?')
+        .bind(str('code', 20).toUpperCase())
+        .first<{ id: string }>();
+      if (!row)
+        throw new Problem(
+          'That invite code was not found. Check it and try again.',
+          404,
+        );
+      await db
+        .prepare('INSERT OR IGNORE INTO members(league,user) VALUES(?,?)')
+        .bind(row.id, u.userId)
+        .run();
+      return json({ ok: true, league: row.id });
+    }
+    await membership(
+      league,
+      u.userId,
+      !['pick', 'unpick'].includes(String(action)),
+    );
+    if (action === 'pick') {
+      const game = str('game');
+      const team = str('team', 3);
+      const result = await db
+        .prepare(
+          `INSERT INTO picks(league,user,game,team) SELECT ?,?,g.id,? FROM games g WHERE g.id=? AND g.kickoff>unixepoch('now')*1000 AND g.status='scheduled' AND ? IN (g.away,g.home) AND EXISTS(SELECT 1 FROM members WHERE league=? AND user=?) AND NOT EXISTS(SELECT 1 FROM results WHERE league=? AND game=g.id AND status IN ('final','cancelled')) ON CONFLICT(league,user,game) DO UPDATE SET team=excluded.team`,
+        )
+        .bind(league, u.userId, team, game, team, league, u.userId, league)
+        .run();
+      if (!result.meta.changes)
+        throw new Problem(
+          'This pick is locked or the team is invalid. Refresh to see the latest game status.',
+          409,
+        );
+      return json({ ok: true });
+    }
+    if (action === 'unpick') {
+      const game = str('game');
+      const result = await db
+        .prepare(
+          `DELETE FROM picks WHERE league=? AND user=? AND game=? AND game IN (SELECT id FROM games WHERE kickoff>unixepoch('now')*1000 AND status='scheduled') AND NOT EXISTS(SELECT 1 FROM results WHERE league=? AND game=? AND status IN ('final','cancelled'))`,
+        )
+        .bind(league, u.userId, game, league, game)
+        .run();
+      if (!result.meta.changes)
+        throw new Problem(
+          'This pick is already clear or locked. Refresh to see the latest game status.',
+          409,
+        );
+      return json({ ok: true });
+    }
+    if (action === 'publish-picks') {
+      const week = Number(body.week);
+      if (!Number.isInteger(week) || week < 1 || week > 18)
+        throw new Problem('Choose a valid week.');
+      const available = await db
+        .prepare(
+          `SELECT COUNT(*) games FROM (SELECT p.game FROM picks p JOIN games g ON g.id=p.game WHERE p.league=? AND g.week=? AND g.kickoff>unixepoch('now')*1000 GROUP BY p.game HAVING COUNT(DISTINCT p.user)=(SELECT COUNT(*) FROM members WHERE league=?))`,
+        )
+        .bind(league, week, league)
+        .first<{ games: number }>();
+      if (!available?.games)
+        throw new Problem(
+          'No matchup is ready yet. Every league member must submit a pick for the same game before it can be published.',
+        );
+      await db.batch([
+        db
+          .prepare(
+            'DELETE FROM published_pick_entries WHERE league=? AND week=?',
+          )
+          .bind(league, week),
+        db
+          .prepare(
+            `INSERT INTO published_pick_entries(league,week,user,game,team) SELECT p.league,?,p.user,p.game,p.team FROM picks p JOIN games g ON g.id=p.game WHERE p.league=? AND g.week=? AND g.kickoff>unixepoch('now')*1000 AND p.game IN (SELECT p2.game FROM picks p2 JOIN games g2 ON g2.id=p2.game WHERE p2.league=? AND g2.week=? AND g2.kickoff>unixepoch('now')*1000 GROUP BY p2.game HAVING COUNT(DISTINCT p2.user)=(SELECT COUNT(*) FROM members WHERE league=?))`,
+          )
+          .bind(week, league, week, league, week, league),
+        db
+          .prepare(
+            `INSERT INTO pick_publications(league,week,published_at) VALUES(?,?,unixepoch('now')*1000) ON CONFLICT(league,week) DO UPDATE SET published_at=excluded.published_at`,
+          )
+          .bind(league, week),
+      ]);
+      return json({ ok: true });
+    }
+    if (action === 'unpublish-picks') {
+      const week = Number(body.week);
+      if (!Number.isInteger(week) || week < 1 || week > 18)
+        throw new Problem('Choose a valid week.');
+      await db.batch([
+        db
+          .prepare(
+            'DELETE FROM published_pick_entries WHERE league=? AND week=?',
+          )
+          .bind(league, week),
+        db
+          .prepare('DELETE FROM pick_publications WHERE league=? AND week=?')
+          .bind(league, week),
+      ]);
+      return json({ ok: true });
+    }
+    if (action === 'rename') {
+      await db
+        .prepare('UPDATE leagues SET name=? WHERE id=?')
+        .bind(str('name', 50), league)
+        .run();
+      return json({ ok: true });
+    }
+    if (action === 'rotate') {
+      await db
+        .prepare('UPDATE leagues SET code=? WHERE id=?')
+        .bind(
+          crypto.randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase(),
+          league,
+        )
+        .run();
+      return json({ ok: true });
+    }
+    if (action === 'remove') {
+      const member = str('member');
+      if (member === u.userId)
+        throw new Problem('The commissioner cannot be removed.');
+      await db.batch([
+        db
+          .prepare('DELETE FROM picks WHERE league=? AND user=?')
+          .bind(league, member),
+        db
+          .prepare('DELETE FROM members WHERE league=? AND user=?')
+          .bind(league, member),
+      ]);
+      return json({ ok: true });
+    }
+    throw new Problem('Unknown action.');
+  } catch (e) {
+    return fail(e);
+  }
+}
