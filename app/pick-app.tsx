@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  Info,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -668,6 +669,34 @@ export default function PickApp() {
                           <TabsTrigger value="season">Full season</TabsTrigger>
                         </TabsList>
                       </Tabs>
+                      <div className="badge-info">
+                        <button
+                          type="button"
+                          aria-label="Explain standings badges"
+                          aria-describedby="badge-explanation"
+                        >
+                          <Info size={16} />
+                        </button>
+                        <div id="badge-explanation" role="tooltip">
+                          <b>Standings badges</b>
+                          <p>
+                            <strong>VENDE PATRIAS:</strong> most public picks
+                            against their own favorite team.
+                          </p>
+                          <p>
+                            <strong>WILD PICKER:</strong> most public picks
+                            selected by 20% or less of the league.
+                          </p>
+                          <p>
+                            <strong>TITANIC MUSICIAN:</strong> most incorrect
+                            picks placed on their own favorite team.
+                          </p>
+                          <small>
+                            Counts follow the selected period. Tied leaders
+                            share the badge.
+                          </small>
+                        </div>
+                      </div>
                       {leaderboard.length ? (
                         <Table>
                           <TableHeader>
@@ -722,7 +751,7 @@ export default function PickApp() {
                                       {againstLeaderCount > 0 &&
                                         againstCount === againstLeaderCount && (
                                           <span className="player-tag against-team">
-                                            AGAINST OWN TEAM ×{againstCount}
+                                            VENDE PATRIAS ×{againstCount}
                                           </span>
                                         )}
                                       {wildLeaderCount > 0 &&

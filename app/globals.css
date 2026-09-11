@@ -792,6 +792,61 @@ button.outline,
   background: #dfeaf5;
   color: #315c7c;
 }
+.badge-info {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  margin: -14px 0 10px;
+}
+.badge-info > button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: #60756b;
+}
+.badge-info [role='tooltip'] {
+  position: absolute;
+  z-index: 5;
+  top: 36px;
+  right: 0;
+  width: min(310px, calc(100vw - 64px));
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  box-shadow: 0 12px 30px rgba(25, 48, 40, 0.18);
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: 120ms ease;
+  pointer-events: none;
+}
+.badge-info:hover [role='tooltip'],
+.badge-info:focus-within [role='tooltip'] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.badge-info [role='tooltip'] > b {
+  display: block;
+  margin-bottom: 8px;
+}
+.badge-info [role='tooltip'] p {
+  margin: 5px 0;
+  color: inherit;
+}
+.badge-info [role='tooltip'] small {
+  display: block;
+  margin-top: 8px;
+  color: #6e7c76;
+}
 .favorite-required {
   display: flex;
   align-items: center;
@@ -1112,6 +1167,9 @@ button.outline,
 }
 [data-theme='dark'] .favorite-team-avatar {
   background: #eef2ef;
+}
+[data-theme='dark'] .badge-info [role='tooltip'] {
+  background: #182829;
 }
 [data-theme='dark'] .published-team {
   background: #18372f;
