@@ -51,6 +51,9 @@ type Standing = Member & {
   wildWeekly: number;
   wildMonthly: number;
   wildSeason: number;
+  favoriteLossWeekly: number;
+  favoriteLossMonthly: number;
+  favoriteLossSeason: number;
 };
 type MemberCompletion = Member & { picked: number };
 type State = {
@@ -258,18 +261,27 @@ export default function PickApp() {
           ? b.monthly - a.monthly
           : b.season - a.season) || a.name.localeCompare(b.name),
   );
-  const periodCount = (standing: Standing, kind: 'against' | 'wild') => {
+  const periodCount = (
+    standing: Standing,
+    kind: 'against' | 'wild' | 'favorite-loss',
+  ) => {
     if (kind === 'against')
       return period === 'weekly'
         ? standing.againstTeamWeekly
         : period === 'monthly'
           ? standing.againstTeamMonthly
           : standing.againstTeamSeason;
+    if (kind === 'wild')
+      return period === 'weekly'
+        ? standing.wildWeekly
+        : period === 'monthly'
+          ? standing.wildMonthly
+          : standing.wildSeason;
     return period === 'weekly'
-      ? standing.wildWeekly
+      ? standing.favoriteLossWeekly
       : period === 'monthly'
-        ? standing.wildMonthly
-        : standing.wildSeason;
+        ? standing.favoriteLossMonthly
+        : standing.favoriteLossSeason;
   };
   const againstLeaderCount = Math.max(
     0,
@@ -278,6 +290,10 @@ export default function PickApp() {
   const wildLeaderCount = Math.max(
     0,
     ...leaderboard.map((standing) => periodCount(standing, 'wild')),
+  );
+  const favoriteLossLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'favorite-loss')),
   );
   const month = Math.ceil(week / 4);
   function smallForm(
@@ -682,6 +698,10 @@ export default function PickApp() {
                                 ) + 1;
                               const againstCount = periodCount(p, 'against');
                               const wildCount = periodCount(p, 'wild');
+                              const favoriteLossCount = periodCount(
+                                p,
+                                'favorite-loss',
+                              );
                               return (
                                 <TableRow key={p.id}>
                                   <TableCell>
@@ -709,6 +729,14 @@ export default function PickApp() {
                                         wildCount === wildLeaderCount && (
                                           <span className="player-tag wild-picker">
                                             WILD PICKER ×{wildCount}
+                                          </span>
+                                        )}
+                                      {favoriteLossLeaderCount > 0 &&
+                                        favoriteLossCount ===
+                                          favoriteLossLeaderCount && (
+                                          <span className="player-tag titanic-musician">
+                                            TITANIC MUSICIAN ×
+                                            {favoriteLossCount}
                                           </span>
                                         )}
                                     </div>

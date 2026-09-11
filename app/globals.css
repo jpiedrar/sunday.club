@@ -788,6 +788,10 @@ button.outline,
   background: #fff1ca;
   color: #7c570f;
 }
+.player-tag.titanic-musician {
+  background: #dfeaf5;
+  color: #315c7c;
+}
 .favorite-required {
   display: flex;
   align-items: center;

@@ -7,6 +7,7 @@ unpick_sql=re.search(r'`(DELETE FROM picks WHERE league=\?.*?)`',source,re.S).gr
 score_sql=re.search(r'`(SELECT p.id,p.name,p.favorite_team favoriteTeam,COALESCE.*?)`',source,re.S).group(1)
 reveal_sql=re.search(r'`(SELECT p.user,p.game,p.team FROM picks.*?UNION ALL.*?)`',source,re.S).group(1)
 publication_sql=re.search(r'`(INSERT INTO published_pick_entries.*?)`',source,re.S).group(1)
+favorite_loss_sql=re.search(r'`(SELECT k.user,g.week FROM picks k JOIN profiles p.*?)`',source,re.S).group(1)
 class Rules(unittest.TestCase):
  def test_complete_official_schedule(self):
   games=json.loads((root/'lib/schedule-2026.json').read_text())
@@ -56,6 +57,12 @@ class Rules(unittest.TestCase):
   self.db.execute("INSERT INTO results VALUES('l','locked','KC','final')")
   row=self.db.execute(score_sql,(2,1,4,'l')).fetchone()
   self.assertEqual(row['weekly'],1)
+ def test_favorite_team_loss(self):
+  self.db.execute("UPDATE profiles SET favorite_team='KC' WHERE id='a'")
+  self.db.execute("INSERT INTO picks VALUES('l','a','past','KC')")
+  self.db.execute("UPDATE games SET winner='BUF' WHERE id='past'")
+  losses=self.db.execute(favorite_loss_sql,('l',)).fetchall()
+  self.assertEqual([(row['user'],row['week']) for row in losses],[('a',1)])
  def test_weekly_vs_season(self):
   self.db.execute("INSERT INTO picks VALUES('l','a','past','KC')")
   row=self.db.execute(score_sql,(2,1,4,'l')).fetchone()

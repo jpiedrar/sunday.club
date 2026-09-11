@@ -256,6 +256,14 @@ export async function GET(req: Request) {
       entry.teams.set(row.team, (entry.teams.get(row.team) ?? 0) + 1);
       countsByGame.set(row.game, entry);
     }
+    const favoriteLossRows = (
+      await db
+        .prepare(
+          `SELECT k.user,g.week FROM picks k JOIN profiles p ON p.id=k.user JOIN games g ON g.id=k.game LEFT JOIN results r ON r.league=k.league AND r.game=g.id WHERE k.league=? AND p.favorite_team=k.team AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END IS NOT NULL AND k.team<>CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END`,
+        )
+        .bind(league)
+        .all<{ user: string; week: number }>()
+    ).results;
     const standingsWithBadges = standings.map((standing) => {
       const player = standing as Record<string, unknown> & {
         id: string;
@@ -268,6 +276,9 @@ export async function GET(req: Request) {
         wildWeekly: 0,
         wildMonthly: 0,
         wildSeason: 0,
+        favoriteLossWeekly: 0,
+        favoriteLossMonthly: 0,
+        favoriteLossSeason: 0,
       };
       for (const row of badgeRows.filter((pick) => pick.user === player.id)) {
         const favoriteTeam = player.favoriteTeam;
@@ -291,6 +302,14 @@ export async function GET(req: Request) {
           if (row.week >= monthStart && row.week <= monthEnd)
             stats.wildMonthly++;
         }
+      }
+      for (const loss of favoriteLossRows.filter(
+        (result) => result.user === player.id,
+      )) {
+        stats.favoriteLossSeason++;
+        if (loss.week === week) stats.favoriteLossWeekly++;
+        if (loss.week >= monthStart && loss.week <= monthEnd)
+          stats.favoriteLossMonthly++;
       }
       return { ...standing, ...stats };
     });
