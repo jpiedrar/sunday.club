@@ -47,6 +47,9 @@ assert future['id'] not in state['publishedPicks'].get(state['profile']['id'],{}
 assert len(state['standings'])==1 and state['standings'][0]['monthly']==0 and state['standings'][0]['season']==0
 status,week_two=request('GET',f'/api/club?week=2&league={league}');assert status==200,week_two
 assert week_two['allPicksComplete'] is False
+assert week_two['scheduleOfficial'] is True
+assert len(week_two['games'])==16
+assert week_two['games'][0]['away']=='DET' and week_two['games'][0]['home']=='BUF'
 for game in week_two['games']:
  assert request('POST','/api/club',{'action':'pick','league':league,'game':game['id'],'team':game['away']})[0]==200
 status,complete=request('GET',f'/api/club?week=2&league={league}');assert status==200,complete

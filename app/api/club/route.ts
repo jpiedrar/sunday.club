@@ -2,6 +2,7 @@ import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { database, seed } from '@/db/store';
 import { getMarketOdds } from '@/lib/odds';
 import { syncLiveResults } from '@/lib/results';
+import { syncOfficialSchedule } from '@/lib/schedule';
 import type { Game } from '@/lib/games';
 export const dynamic = 'force-dynamic';
 const json = (body: unknown, status = 200) =>
@@ -65,6 +66,7 @@ export async function GET(req: Request) {
     const week = Number(url.searchParams.get('week') ?? 1);
     if (!Number.isInteger(week) || week < 1 || week > 18)
       throw new Problem('Choose a week from 1 to 18.');
+    const scheduleOfficial = await syncOfficialSchedule(week, db);
     const serverNow = Date.now();
     const league =
       url.searchParams.get('league') ||
@@ -98,6 +100,7 @@ export async function GET(req: Request) {
         standings: [],
         members: [],
         league: null,
+        scheduleOfficial,
         serverNow,
       });
     }
@@ -241,6 +244,7 @@ export async function GET(req: Request) {
       marketOdds,
       standings,
       members,
+      scheduleOfficial,
       serverNow,
     });
   } catch (e) {

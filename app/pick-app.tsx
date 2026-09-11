@@ -38,7 +38,7 @@ import {
   AlertDialogAction,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import { mockGames, team, type Game } from '@/lib/games';
+import { fallbackGames, team, type Game } from '@/lib/games';
 type League = { id: string; name: string; owner: string; code: string };
 type Member = { id: string; name: string };
 type Standing = Member & { weekly: number; monthly: number; season: number };
@@ -64,6 +64,7 @@ type State = {
   >;
   members: Member[];
   standings: Standing[];
+  scheduleOfficial: boolean;
   serverNow: number;
 };
 const nav = [
@@ -211,7 +212,7 @@ export default function PickApp() {
   }
   const league = data?.leagues.find((l) => l.id === data.league);
   const owner = !!league && league.owner === data?.profile.id;
-  const games = data?.games ?? mockGames.filter((g) => g.week === week);
+  const games = data?.games ?? fallbackGames.filter((g) => g.week === week);
   const picks = data?.picks ?? {};
   const count = games.filter((g) => picks[g.id]).length;
   const hasRevealedPicks = Boolean(data?.revealedGames.length);
@@ -332,7 +333,9 @@ export default function PickApp() {
             {league && <ChevronRight size={14} />}
           </button>
           <span className="pill">
-            {week === 1 ? 'OFFICIAL WEEK 1' : 'MOCK SCHEDULE'}
+            {data?.scheduleOfficial === false
+              ? 'SCHEDULE OFFLINE'
+              : `OFFICIAL WEEK ${week}`}
           </span>
         </div>
         <div className="heading">
@@ -877,12 +880,10 @@ export default function PickApp() {
                 <p>Picks lock at kickoff. Tied scores share the glory.</p>
               </div>
               <div className="data-note">
-                Mock NFL schedule
+                Official NFL schedule
                 <br />
                 <span>
-                  {week === 1
-                    ? 'Verified against the official NFL schedule.'
-                    : 'Weeks 2–18 are fictional until live data is connected.'}
+                  All 18 weeks include official matchups and kickoff times.
                 </span>
               </div>
             </aside>
@@ -1072,8 +1073,8 @@ export default function PickApp() {
                   : 'On iPhone, open in Safari and use Share → Add to Home Screen. On Android, use your browser’s Install app option.'}
               </p>
               <p className="footnote">
-                An internet connection is required to save picks. The mock
-                schedule is fictional and is not affiliated with the NFL.
+                An internet connection is required to save picks. The latest
+                official schedule stays available after it is downloaded.
               </p>
             </section>
           </div>

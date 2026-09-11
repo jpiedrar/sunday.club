@@ -1,0 +1,1794 @@
+[
+  {
+    "id": "espn-401872932",
+    "week": 2,
+    "away": "DET",
+    "home": "BUF",
+    "kickoff": "2026-09-18T00:15Z"
+  },
+  {
+    "id": "espn-401872933",
+    "week": 2,
+    "away": "CAR",
+    "home": "ATL",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872934",
+    "week": 2,
+    "away": "CIN",
+    "home": "HOU",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872935",
+    "week": 2,
+    "away": "CLE",
+    "home": "TB",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872936",
+    "week": 2,
+    "away": "GB",
+    "home": "NYJ",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872937",
+    "week": 2,
+    "away": "MIN",
+    "home": "CHI",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872938",
+    "week": 2,
+    "away": "NO",
+    "home": "BAL",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872939",
+    "week": 2,
+    "away": "PHI",
+    "home": "TEN",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872946",
+    "week": 2,
+    "away": "PIT",
+    "home": "NE",
+    "kickoff": "2026-09-20T17:00Z"
+  },
+  {
+    "id": "espn-401872940",
+    "week": 2,
+    "away": "JAX",
+    "home": "DEN",
+    "kickoff": "2026-09-20T20:05Z"
+  },
+  {
+    "id": "espn-401872941",
+    "week": 2,
+    "away": "LV",
+    "home": "LAC",
+    "kickoff": "2026-09-20T20:05Z"
+  },
+  {
+    "id": "espn-401872942",
+    "week": 2,
+    "away": "MIA",
+    "home": "SF",
+    "kickoff": "2026-09-20T20:25Z"
+  },
+  {
+    "id": "espn-401872943",
+    "week": 2,
+    "away": "SEA",
+    "home": "ARI",
+    "kickoff": "2026-09-20T20:25Z"
+  },
+  {
+    "id": "espn-401872944",
+    "week": 2,
+    "away": "WAS",
+    "home": "DAL",
+    "kickoff": "2026-09-20T20:25Z"
+  },
+  {
+    "id": "espn-401872945",
+    "week": 2,
+    "away": "IND",
+    "home": "KC",
+    "kickoff": "2026-09-21T00:20Z"
+  },
+  {
+    "id": "espn-401872947",
+    "week": 2,
+    "away": "NYG",
+    "home": "LAR",
+    "kickoff": "2026-09-22T00:15Z"
+  },
+  {
+    "id": "espn-401872948",
+    "week": 3,
+    "away": "ATL",
+    "home": "GB",
+    "kickoff": "2026-09-25T00:15Z"
+  },
+  {
+    "id": "espn-401872949",
+    "week": 3,
+    "away": "CAR",
+    "home": "CLE",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872950",
+    "week": 3,
+    "away": "CIN",
+    "home": "PIT",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872951",
+    "week": 3,
+    "away": "HOU",
+    "home": "IND",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872952",
+    "week": 3,
+    "away": "KC",
+    "home": "MIA",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872953",
+    "week": 3,
+    "away": "LAC",
+    "home": "BUF",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872954",
+    "week": 3,
+    "away": "NYJ",
+    "home": "DET",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872955",
+    "week": 3,
+    "away": "SEA",
+    "home": "WAS",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872956",
+    "week": 3,
+    "away": "TEN",
+    "home": "NYG",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872957",
+    "week": 3,
+    "away": "NE",
+    "home": "JAX",
+    "kickoff": "2026-09-27T17:00Z"
+  },
+  {
+    "id": "espn-401872958",
+    "week": 3,
+    "away": "ARI",
+    "home": "SF",
+    "kickoff": "2026-09-27T20:05Z"
+  },
+  {
+    "id": "espn-401872959",
+    "week": 3,
+    "away": "MIN",
+    "home": "TB",
+    "kickoff": "2026-09-27T20:05Z"
+  },
+  {
+    "id": "espn-401872960",
+    "week": 3,
+    "away": "BAL",
+    "home": "DAL",
+    "kickoff": "2026-09-27T20:25Z"
+  },
+  {
+    "id": "espn-401872961",
+    "week": 3,
+    "away": "LV",
+    "home": "NO",
+    "kickoff": "2026-09-27T20:25Z"
+  },
+  {
+    "id": "espn-401872962",
+    "week": 3,
+    "away": "LAR",
+    "home": "DEN",
+    "kickoff": "2026-09-28T00:20Z"
+  },
+  {
+    "id": "espn-401872963",
+    "week": 3,
+    "away": "PHI",
+    "home": "CHI",
+    "kickoff": "2026-09-29T00:15Z"
+  },
+  {
+    "id": "espn-401872964",
+    "week": 4,
+    "away": "PIT",
+    "home": "CLE",
+    "kickoff": "2026-10-02T00:15Z"
+  },
+  {
+    "id": "espn-401872965",
+    "week": 4,
+    "away": "IND",
+    "home": "WAS",
+    "kickoff": "2026-10-04T13:30Z"
+  },
+  {
+    "id": "espn-401872966",
+    "week": 4,
+    "away": "ARI",
+    "home": "NYG",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872967",
+    "week": 4,
+    "away": "DAL",
+    "home": "HOU",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872968",
+    "week": 4,
+    "away": "GB",
+    "home": "TB",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872969",
+    "week": 4,
+    "away": "JAX",
+    "home": "CIN",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872970",
+    "week": 4,
+    "away": "LAR",
+    "home": "PHI",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872971",
+    "week": 4,
+    "away": "NE",
+    "home": "BUF",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872972",
+    "week": 4,
+    "away": "NYJ",
+    "home": "CHI",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872973",
+    "week": 4,
+    "away": "TEN",
+    "home": "BAL",
+    "kickoff": "2026-10-04T17:00Z"
+  },
+  {
+    "id": "espn-401872974",
+    "week": 4,
+    "away": "MIA",
+    "home": "MIN",
+    "kickoff": "2026-10-04T20:05Z"
+  },
+  {
+    "id": "espn-401872975",
+    "week": 4,
+    "away": "DEN",
+    "home": "SF",
+    "kickoff": "2026-10-04T20:25Z"
+  },
+  {
+    "id": "espn-401872976",
+    "week": 4,
+    "away": "KC",
+    "home": "LV",
+    "kickoff": "2026-10-04T20:25Z"
+  },
+  {
+    "id": "espn-401872977",
+    "week": 4,
+    "away": "LAC",
+    "home": "SEA",
+    "kickoff": "2026-10-04T20:25Z"
+  },
+  {
+    "id": "espn-401872978",
+    "week": 4,
+    "away": "DET",
+    "home": "CAR",
+    "kickoff": "2026-10-05T00:20Z"
+  },
+  {
+    "id": "espn-401872979",
+    "week": 4,
+    "away": "ATL",
+    "home": "NO",
+    "kickoff": "2026-10-06T00:15Z"
+  },
+  {
+    "id": "espn-401872980",
+    "week": 5,
+    "away": "TB",
+    "home": "DAL",
+    "kickoff": "2026-10-09T00:15Z"
+  },
+  {
+    "id": "espn-401872981",
+    "week": 5,
+    "away": "PHI",
+    "home": "JAX",
+    "kickoff": "2026-10-11T13:30Z"
+  },
+  {
+    "id": "espn-401872982",
+    "week": 5,
+    "away": "CIN",
+    "home": "MIA",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872983",
+    "week": 5,
+    "away": "CLE",
+    "home": "NYJ",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872984",
+    "week": 5,
+    "away": "HOU",
+    "home": "TEN",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872985",
+    "week": 5,
+    "away": "IND",
+    "home": "PIT",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872986",
+    "week": 5,
+    "away": "LV",
+    "home": "NE",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872987",
+    "week": 5,
+    "away": "MIN",
+    "home": "NO",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872988",
+    "week": 5,
+    "away": "NYG",
+    "home": "WAS",
+    "kickoff": "2026-10-11T17:00Z"
+  },
+  {
+    "id": "espn-401872989",
+    "week": 5,
+    "away": "DEN",
+    "home": "LAC",
+    "kickoff": "2026-10-11T20:05Z"
+  },
+  {
+    "id": "espn-401872990",
+    "week": 5,
+    "away": "CHI",
+    "home": "GB",
+    "kickoff": "2026-10-11T20:25Z"
+  },
+  {
+    "id": "espn-401872991",
+    "week": 5,
+    "away": "DET",
+    "home": "ARI",
+    "kickoff": "2026-10-11T20:25Z"
+  },
+  {
+    "id": "espn-401872992",
+    "week": 5,
+    "away": "SF",
+    "home": "SEA",
+    "kickoff": "2026-10-11T20:25Z"
+  },
+  {
+    "id": "espn-401872993",
+    "week": 5,
+    "away": "BAL",
+    "home": "ATL",
+    "kickoff": "2026-10-12T00:20Z"
+  },
+  {
+    "id": "espn-401872994",
+    "week": 5,
+    "away": "BUF",
+    "home": "LAR",
+    "kickoff": "2026-10-13T00:15Z"
+  },
+  {
+    "id": "espn-401872995",
+    "week": 6,
+    "away": "SEA",
+    "home": "DEN",
+    "kickoff": "2026-10-16T00:15Z"
+  },
+  {
+    "id": "espn-401872996",
+    "week": 6,
+    "away": "HOU",
+    "home": "JAX",
+    "kickoff": "2026-10-18T13:30Z"
+  },
+  {
+    "id": "espn-401872997",
+    "week": 6,
+    "away": "BAL",
+    "home": "CLE",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401872998",
+    "week": 6,
+    "away": "CAR",
+    "home": "PHI",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401872999",
+    "week": 6,
+    "away": "CHI",
+    "home": "ATL",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401873000",
+    "week": 6,
+    "away": "NO",
+    "home": "NYG",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401873001",
+    "week": 6,
+    "away": "NYJ",
+    "home": "NE",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401873002",
+    "week": 6,
+    "away": "PIT",
+    "home": "TB",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401873003",
+    "week": 6,
+    "away": "TEN",
+    "home": "IND",
+    "kickoff": "2026-10-18T17:00Z"
+  },
+  {
+    "id": "espn-401873004",
+    "week": 6,
+    "away": "ARI",
+    "home": "LAR",
+    "kickoff": "2026-10-18T20:05Z"
+  },
+  {
+    "id": "espn-401873005",
+    "week": 6,
+    "away": "BUF",
+    "home": "LV",
+    "kickoff": "2026-10-18T20:25Z"
+  },
+  {
+    "id": "espn-401873006",
+    "week": 6,
+    "away": "LAC",
+    "home": "KC",
+    "kickoff": "2026-10-18T20:25Z"
+  },
+  {
+    "id": "espn-401873007",
+    "week": 6,
+    "away": "DAL",
+    "home": "GB",
+    "kickoff": "2026-10-19T00:20Z"
+  },
+  {
+    "id": "espn-401873008",
+    "week": 6,
+    "away": "WAS",
+    "home": "SF",
+    "kickoff": "2026-10-20T00:15Z"
+  },
+  {
+    "id": "espn-401873010",
+    "week": 7,
+    "away": "NE",
+    "home": "CHI",
+    "kickoff": "2026-10-23T00:15Z"
+  },
+  {
+    "id": "espn-401873011",
+    "week": 7,
+    "away": "PIT",
+    "home": "NO",
+    "kickoff": "2026-10-25T13:30Z"
+  },
+  {
+    "id": "espn-401873012",
+    "week": 7,
+    "away": "CIN",
+    "home": "BAL",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873013",
+    "week": 7,
+    "away": "CLE",
+    "home": "TEN",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873014",
+    "week": 7,
+    "away": "IND",
+    "home": "MIN",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873015",
+    "week": 7,
+    "away": "MIA",
+    "home": "NYJ",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873016",
+    "week": 7,
+    "away": "NYG",
+    "home": "HOU",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873017",
+    "week": 7,
+    "away": "SF",
+    "home": "ATL",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873018",
+    "week": 7,
+    "away": "TB",
+    "home": "CAR",
+    "kickoff": "2026-10-25T17:00Z"
+  },
+  {
+    "id": "espn-401873019",
+    "week": 7,
+    "away": "DEN",
+    "home": "ARI",
+    "kickoff": "2026-10-25T20:05Z"
+  },
+  {
+    "id": "espn-401873020",
+    "week": 7,
+    "away": "GB",
+    "home": "DET",
+    "kickoff": "2026-10-25T20:25Z"
+  },
+  {
+    "id": "espn-401873021",
+    "week": 7,
+    "away": "LAR",
+    "home": "LV",
+    "kickoff": "2026-10-25T20:25Z"
+  },
+  {
+    "id": "espn-401873022",
+    "week": 7,
+    "away": "KC",
+    "home": "SEA",
+    "kickoff": "2026-10-26T00:20Z"
+  },
+  {
+    "id": "espn-401873009",
+    "week": 7,
+    "away": "DAL",
+    "home": "PHI",
+    "kickoff": "2026-10-27T00:15Z"
+  },
+  {
+    "id": "espn-401873023",
+    "week": 8,
+    "away": "CAR",
+    "home": "GB",
+    "kickoff": "2026-10-30T00:15Z"
+  },
+  {
+    "id": "espn-401873024",
+    "week": 8,
+    "away": "ARI",
+    "home": "DAL",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873025",
+    "week": 8,
+    "away": "ATL",
+    "home": "TB",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873026",
+    "week": 8,
+    "away": "BAL",
+    "home": "BUF",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873027",
+    "week": 8,
+    "away": "CLE",
+    "home": "PIT",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873028",
+    "week": 8,
+    "away": "IND",
+    "home": "JAX",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873029",
+    "week": 8,
+    "away": "LV",
+    "home": "NYJ",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873030",
+    "week": 8,
+    "away": "MIN",
+    "home": "DET",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873031",
+    "week": 8,
+    "away": "TEN",
+    "home": "CIN",
+    "kickoff": "2026-11-01T18:00Z"
+  },
+  {
+    "id": "espn-401873032",
+    "week": 8,
+    "away": "LAC",
+    "home": "LAR",
+    "kickoff": "2026-11-01T21:05Z"
+  },
+  {
+    "id": "espn-401873033",
+    "week": 8,
+    "away": "KC",
+    "home": "DEN",
+    "kickoff": "2026-11-01T21:25Z"
+  },
+  {
+    "id": "espn-401873034",
+    "week": 8,
+    "away": "NE",
+    "home": "MIA",
+    "kickoff": "2026-11-01T21:25Z"
+  },
+  {
+    "id": "espn-401873035",
+    "week": 8,
+    "away": "PHI",
+    "home": "WAS",
+    "kickoff": "2026-11-02T01:20Z"
+  },
+  {
+    "id": "espn-401873036",
+    "week": 8,
+    "away": "CHI",
+    "home": "SEA",
+    "kickoff": "2026-11-03T01:15Z"
+  },
+  {
+    "id": "espn-401873037",
+    "week": 9,
+    "away": "JAX",
+    "home": "BAL",
+    "kickoff": "2026-11-06T01:15Z"
+  },
+  {
+    "id": "espn-401873038",
+    "week": 9,
+    "away": "CIN",
+    "home": "ATL",
+    "kickoff": "2026-11-08T14:30Z"
+  },
+  {
+    "id": "espn-401873039",
+    "week": 9,
+    "away": "CLE",
+    "home": "NO",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873040",
+    "week": 9,
+    "away": "DAL",
+    "home": "IND",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873041",
+    "week": 9,
+    "away": "DEN",
+    "home": "CAR",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873042",
+    "week": 9,
+    "away": "DET",
+    "home": "MIA",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873043",
+    "week": 9,
+    "away": "LAR",
+    "home": "WAS",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873044",
+    "week": 9,
+    "away": "NYG",
+    "home": "PHI",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873045",
+    "week": 9,
+    "away": "NYJ",
+    "home": "KC",
+    "kickoff": "2026-11-08T18:00Z"
+  },
+  {
+    "id": "espn-401873046",
+    "week": 9,
+    "away": "HOU",
+    "home": "LAC",
+    "kickoff": "2026-11-08T21:05Z"
+  },
+  {
+    "id": "espn-401873047",
+    "week": 9,
+    "away": "LV",
+    "home": "SF",
+    "kickoff": "2026-11-08T21:05Z"
+  },
+  {
+    "id": "espn-401873048",
+    "week": 9,
+    "away": "ARI",
+    "home": "SEA",
+    "kickoff": "2026-11-08T21:25Z"
+  },
+  {
+    "id": "espn-401873049",
+    "week": 9,
+    "away": "GB",
+    "home": "NE",
+    "kickoff": "2026-11-08T21:25Z"
+  },
+  {
+    "id": "espn-401873050",
+    "week": 9,
+    "away": "TB",
+    "home": "CHI",
+    "kickoff": "2026-11-09T01:20Z"
+  },
+  {
+    "id": "espn-401873051",
+    "week": 9,
+    "away": "BUF",
+    "home": "MIN",
+    "kickoff": "2026-11-10T01:15Z"
+  },
+  {
+    "id": "espn-401873052",
+    "week": 10,
+    "away": "WAS",
+    "home": "NYG",
+    "kickoff": "2026-11-13T01:15Z"
+  },
+  {
+    "id": "espn-401873053",
+    "week": 10,
+    "away": "NE",
+    "home": "DET",
+    "kickoff": "2026-11-15T14:30Z"
+  },
+  {
+    "id": "espn-401873054",
+    "week": 10,
+    "away": "BUF",
+    "home": "NYJ",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873055",
+    "week": 10,
+    "away": "CAR",
+    "home": "NO",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873056",
+    "week": 10,
+    "away": "HOU",
+    "home": "CLE",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873057",
+    "week": 10,
+    "away": "JAX",
+    "home": "TEN",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873058",
+    "week": 10,
+    "away": "KC",
+    "home": "ATL",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873059",
+    "week": 10,
+    "away": "MIA",
+    "home": "IND",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873060",
+    "week": 10,
+    "away": "MIN",
+    "home": "GB",
+    "kickoff": "2026-11-15T18:00Z"
+  },
+  {
+    "id": "espn-401873061",
+    "week": 10,
+    "away": "LAR",
+    "home": "ARI",
+    "kickoff": "2026-11-15T21:05Z"
+  },
+  {
+    "id": "espn-401873062",
+    "week": 10,
+    "away": "SEA",
+    "home": "LV",
+    "kickoff": "2026-11-15T21:05Z"
+  },
+  {
+    "id": "espn-401873063",
+    "week": 10,
+    "away": "SF",
+    "home": "DAL",
+    "kickoff": "2026-11-15T21:25Z"
+  },
+  {
+    "id": "espn-401873064",
+    "week": 10,
+    "away": "PIT",
+    "home": "CIN",
+    "kickoff": "2026-11-16T01:20Z"
+  },
+  {
+    "id": "espn-401873065",
+    "week": 10,
+    "away": "LAC",
+    "home": "BAL",
+    "kickoff": "2026-11-17T01:15Z"
+  },
+  {
+    "id": "espn-401873066",
+    "week": 11,
+    "away": "IND",
+    "home": "HOU",
+    "kickoff": "2026-11-20T01:15Z"
+  },
+  {
+    "id": "espn-401873067",
+    "week": 11,
+    "away": "ARI",
+    "home": "KC",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873068",
+    "week": 11,
+    "away": "BAL",
+    "home": "CAR",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873069",
+    "week": 11,
+    "away": "JAX",
+    "home": "NYG",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873070",
+    "week": 11,
+    "away": "MIA",
+    "home": "BUF",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873071",
+    "week": 11,
+    "away": "NO",
+    "home": "CHI",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873072",
+    "week": 11,
+    "away": "TB",
+    "home": "DET",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873073",
+    "week": 11,
+    "away": "TEN",
+    "home": "DAL",
+    "kickoff": "2026-11-22T18:00Z"
+  },
+  {
+    "id": "espn-401873074",
+    "week": 11,
+    "away": "NYJ",
+    "home": "LAC",
+    "kickoff": "2026-11-22T21:05Z"
+  },
+  {
+    "id": "espn-401873075",
+    "week": 11,
+    "away": "LV",
+    "home": "DEN",
+    "kickoff": "2026-11-22T21:25Z"
+  },
+  {
+    "id": "espn-401873076",
+    "week": 11,
+    "away": "PIT",
+    "home": "PHI",
+    "kickoff": "2026-11-22T21:25Z"
+  },
+  {
+    "id": "espn-401873077",
+    "week": 11,
+    "away": "MIN",
+    "home": "SF",
+    "kickoff": "2026-11-23T01:20Z"
+  },
+  {
+    "id": "espn-401873078",
+    "week": 11,
+    "away": "CIN",
+    "home": "WAS",
+    "kickoff": "2026-11-24T01:15Z"
+  },
+  {
+    "id": "espn-401873079",
+    "week": 12,
+    "away": "GB",
+    "home": "LAR",
+    "kickoff": "2026-11-26T01:00Z"
+  },
+  {
+    "id": "espn-401873081",
+    "week": 12,
+    "away": "CHI",
+    "home": "DET",
+    "kickoff": "2026-11-26T18:00Z"
+  },
+  {
+    "id": "espn-401873080",
+    "week": 12,
+    "away": "PHI",
+    "home": "DAL",
+    "kickoff": "2026-11-26T21:30Z"
+  },
+  {
+    "id": "espn-401873082",
+    "week": 12,
+    "away": "KC",
+    "home": "BUF",
+    "kickoff": "2026-11-27T01:20Z"
+  },
+  {
+    "id": "espn-401873083",
+    "week": 12,
+    "away": "DEN",
+    "home": "PIT",
+    "kickoff": "2026-11-27T20:00Z"
+  },
+  {
+    "id": "espn-401873084",
+    "week": 12,
+    "away": "ATL",
+    "home": "MIN",
+    "kickoff": "2026-11-29T18:00Z"
+  },
+  {
+    "id": "espn-401873085",
+    "week": 12,
+    "away": "BAL",
+    "home": "HOU",
+    "kickoff": "2026-11-29T18:00Z"
+  },
+  {
+    "id": "espn-401873086",
+    "week": 12,
+    "away": "LV",
+    "home": "CLE",
+    "kickoff": "2026-11-29T18:00Z"
+  },
+  {
+    "id": "espn-401873087",
+    "week": 12,
+    "away": "NO",
+    "home": "CIN",
+    "kickoff": "2026-11-29T18:00Z"
+  },
+  {
+    "id": "espn-401873088",
+    "week": 12,
+    "away": "NYG",
+    "home": "IND",
+    "kickoff": "2026-11-29T18:00Z"
+  },
+  {
+    "id": "espn-401873089",
+    "week": 12,
+    "away": "NYJ",
+    "home": "MIA",
+    "kickoff": "2026-11-29T18:00Z"
+  },
+  {
+    "id": "espn-401873090",
+    "week": 12,
+    "away": "TEN",
+    "home": "JAX",
+    "kickoff": "2026-11-29T21:05Z"
+  },
+  {
+    "id": "espn-401873091",
+    "week": 12,
+    "away": "SEA",
+    "home": "SF",
+    "kickoff": "2026-11-29T21:25Z"
+  },
+  {
+    "id": "espn-401873092",
+    "week": 12,
+    "away": "WAS",
+    "home": "ARI",
+    "kickoff": "2026-11-29T21:25Z"
+  },
+  {
+    "id": "espn-401873093",
+    "week": 12,
+    "away": "NE",
+    "home": "LAC",
+    "kickoff": "2026-11-30T01:20Z"
+  },
+  {
+    "id": "espn-401873094",
+    "week": 12,
+    "away": "CAR",
+    "home": "TB",
+    "kickoff": "2026-12-01T01:15Z"
+  },
+  {
+    "id": "espn-401873096",
+    "week": 13,
+    "away": "KC",
+    "home": "LAR",
+    "kickoff": "2026-12-04T01:15Z"
+  },
+  {
+    "id": "espn-401873095",
+    "week": 13,
+    "away": "SF",
+    "home": "NYG",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873097",
+    "week": 13,
+    "away": "CIN",
+    "home": "CLE",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873098",
+    "week": 13,
+    "away": "DET",
+    "home": "ATL",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873099",
+    "week": 13,
+    "away": "GB",
+    "home": "NO",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873100",
+    "week": 13,
+    "away": "JAX",
+    "home": "CHI",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873101",
+    "week": 13,
+    "away": "LAC",
+    "home": "TB",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873102",
+    "week": 13,
+    "away": "WAS",
+    "home": "TEN",
+    "kickoff": "2026-12-06T18:00Z"
+  },
+  {
+    "id": "espn-401873103",
+    "week": 13,
+    "away": "MIA",
+    "home": "DEN",
+    "kickoff": "2026-12-06T21:05Z"
+  },
+  {
+    "id": "espn-401873104",
+    "week": 13,
+    "away": "PHI",
+    "home": "ARI",
+    "kickoff": "2026-12-06T21:05Z"
+  },
+  {
+    "id": "espn-401873105",
+    "week": 13,
+    "away": "BUF",
+    "home": "NE",
+    "kickoff": "2026-12-06T21:25Z"
+  },
+  {
+    "id": "espn-401873106",
+    "week": 13,
+    "away": "CAR",
+    "home": "MIN",
+    "kickoff": "2026-12-06T21:25Z"
+  },
+  {
+    "id": "espn-401873107",
+    "week": 13,
+    "away": "HOU",
+    "home": "PIT",
+    "kickoff": "2026-12-07T01:20Z"
+  },
+  {
+    "id": "espn-401873108",
+    "week": 13,
+    "away": "DAL",
+    "home": "SEA",
+    "kickoff": "2026-12-08T01:15Z"
+  },
+  {
+    "id": "espn-401873109",
+    "week": 14,
+    "away": "MIN",
+    "home": "NE",
+    "kickoff": "2026-12-11T01:15Z"
+  },
+  {
+    "id": "espn-401873110",
+    "week": 14,
+    "away": "ATL",
+    "home": "CLE",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873111",
+    "week": 14,
+    "away": "CHI",
+    "home": "MIA",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873112",
+    "week": 14,
+    "away": "DEN",
+    "home": "NYJ",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873113",
+    "week": 14,
+    "away": "HOU",
+    "home": "WAS",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873114",
+    "week": 14,
+    "away": "IND",
+    "home": "PHI",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873115",
+    "week": 14,
+    "away": "NO",
+    "home": "CAR",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873116",
+    "week": 14,
+    "away": "TB",
+    "home": "BAL",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873117",
+    "week": 14,
+    "away": "TEN",
+    "home": "DET",
+    "kickoff": "2026-12-13T18:00Z"
+  },
+  {
+    "id": "espn-401873118",
+    "week": 14,
+    "away": "LAC",
+    "home": "LV",
+    "kickoff": "2026-12-13T21:05Z"
+  },
+  {
+    "id": "espn-401873119",
+    "week": 14,
+    "away": "KC",
+    "home": "CIN",
+    "kickoff": "2026-12-13T21:25Z"
+  },
+  {
+    "id": "espn-401873120",
+    "week": 14,
+    "away": "LAR",
+    "home": "SF",
+    "kickoff": "2026-12-13T21:25Z"
+  },
+  {
+    "id": "espn-401873121",
+    "week": 14,
+    "away": "NYG",
+    "home": "SEA",
+    "kickoff": "2026-12-13T21:25Z"
+  },
+  {
+    "id": "espn-401873122",
+    "week": 14,
+    "away": "BUF",
+    "home": "GB",
+    "kickoff": "2026-12-14T01:20Z"
+  },
+  {
+    "id": "espn-401873123",
+    "week": 14,
+    "away": "PIT",
+    "home": "JAX",
+    "kickoff": "2026-12-15T01:15Z"
+  },
+  {
+    "id": "espn-401873124",
+    "week": 15,
+    "away": "SF",
+    "home": "LAC",
+    "kickoff": "2026-12-18T01:15Z"
+  },
+  {
+    "id": "espn-401873125",
+    "week": 15,
+    "away": "SEA",
+    "home": "PHI",
+    "kickoff": "2026-12-19T22:00Z"
+  },
+  {
+    "id": "espn-401873126",
+    "week": 15,
+    "away": "CHI",
+    "home": "BUF",
+    "kickoff": "2026-12-20T01:20Z"
+  },
+  {
+    "id": "espn-401873127",
+    "week": 15,
+    "away": "ATL",
+    "home": "WAS",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873128",
+    "week": 15,
+    "away": "BAL",
+    "home": "PIT",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873129",
+    "week": 15,
+    "away": "CIN",
+    "home": "CAR",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873130",
+    "week": 15,
+    "away": "CLE",
+    "home": "NYG",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873131",
+    "week": 15,
+    "away": "IND",
+    "home": "TEN",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873132",
+    "week": 15,
+    "away": "JAX",
+    "home": "HOU",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873133",
+    "week": 15,
+    "away": "MIA",
+    "home": "GB",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873134",
+    "week": 15,
+    "away": "NO",
+    "home": "TB",
+    "kickoff": "2026-12-20T18:00Z"
+  },
+  {
+    "id": "espn-401873135",
+    "week": 15,
+    "away": "NYJ",
+    "home": "ARI",
+    "kickoff": "2026-12-20T21:05Z"
+  },
+  {
+    "id": "espn-401873136",
+    "week": 15,
+    "away": "DAL",
+    "home": "LAR",
+    "kickoff": "2026-12-20T21:25Z"
+  },
+  {
+    "id": "espn-401873137",
+    "week": 15,
+    "away": "DEN",
+    "home": "LV",
+    "kickoff": "2026-12-20T21:25Z"
+  },
+  {
+    "id": "espn-401873138",
+    "week": 15,
+    "away": "DET",
+    "home": "MIN",
+    "kickoff": "2026-12-21T01:20Z"
+  },
+  {
+    "id": "espn-401873139",
+    "week": 15,
+    "away": "NE",
+    "home": "KC",
+    "kickoff": "2026-12-22T01:15Z"
+  },
+  {
+    "id": "espn-401873140",
+    "week": 16,
+    "away": "HOU",
+    "home": "PHI",
+    "kickoff": "2026-12-25T01:15Z"
+  },
+  {
+    "id": "espn-401873141",
+    "week": 16,
+    "away": "GB",
+    "home": "CHI",
+    "kickoff": "2026-12-25T18:00Z"
+  },
+  {
+    "id": "espn-401873142",
+    "week": 16,
+    "away": "BUF",
+    "home": "DEN",
+    "kickoff": "2026-12-25T21:30Z"
+  },
+  {
+    "id": "espn-401873143",
+    "week": 16,
+    "away": "LAR",
+    "home": "SEA",
+    "kickoff": "2026-12-26T01:15Z"
+  },
+  {
+    "id": "espn-401873144",
+    "week": 16,
+    "away": "CAR",
+    "home": "PIT",
+    "kickoff": "2026-12-27T05:00Z"
+  },
+  {
+    "id": "espn-401873145",
+    "week": 16,
+    "away": "CIN",
+    "home": "IND",
+    "kickoff": "2026-12-27T05:00Z"
+  },
+  {
+    "id": "espn-401873146",
+    "week": 16,
+    "away": "TB",
+    "home": "ATL",
+    "kickoff": "2026-12-27T05:00Z"
+  },
+  {
+    "id": "espn-401873147",
+    "week": 16,
+    "away": "WAS",
+    "home": "MIN",
+    "kickoff": "2026-12-27T05:00Z"
+  },
+  {
+    "id": "espn-401873148",
+    "week": 16,
+    "away": "ARI",
+    "home": "NO",
+    "kickoff": "2026-12-27T18:00Z"
+  },
+  {
+    "id": "espn-401873149",
+    "week": 16,
+    "away": "CLE",
+    "home": "BAL",
+    "kickoff": "2026-12-27T18:00Z"
+  },
+  {
+    "id": "espn-401873150",
+    "week": 16,
+    "away": "LAC",
+    "home": "MIA",
+    "kickoff": "2026-12-27T18:00Z"
+  },
+  {
+    "id": "espn-401873151",
+    "week": 16,
+    "away": "NE",
+    "home": "NYJ",
+    "kickoff": "2026-12-27T18:00Z"
+  },
+  {
+    "id": "espn-401873152",
+    "week": 16,
+    "away": "TEN",
+    "home": "LV",
+    "kickoff": "2026-12-27T21:05Z"
+  },
+  {
+    "id": "espn-401873153",
+    "week": 16,
+    "away": "SF",
+    "home": "KC",
+    "kickoff": "2026-12-27T21:25Z"
+  },
+  {
+    "id": "espn-401873154",
+    "week": 16,
+    "away": "JAX",
+    "home": "DAL",
+    "kickoff": "2026-12-28T01:20Z"
+  },
+  {
+    "id": "espn-401873155",
+    "week": 16,
+    "away": "NYG",
+    "home": "DET",
+    "kickoff": "2026-12-29T01:15Z"
+  },
+  {
+    "id": "espn-401873156",
+    "week": 17,
+    "away": "BAL",
+    "home": "CIN",
+    "kickoff": "2027-01-01T01:15Z"
+  },
+  {
+    "id": "espn-401873157",
+    "week": 17,
+    "away": "DEN",
+    "home": "NE",
+    "kickoff": "2027-01-03T05:00Z"
+  },
+  {
+    "id": "espn-401873158",
+    "week": 17,
+    "away": "KC",
+    "home": "LAC",
+    "kickoff": "2027-01-03T05:00Z"
+  },
+  {
+    "id": "espn-401873159",
+    "week": 17,
+    "away": "LAR",
+    "home": "TB",
+    "kickoff": "2027-01-03T05:00Z"
+  },
+  {
+    "id": "espn-401873160",
+    "week": 17,
+    "away": "WAS",
+    "home": "JAX",
+    "kickoff": "2027-01-03T05:00Z"
+  },
+  {
+    "id": "espn-401873161",
+    "week": 17,
+    "away": "BUF",
+    "home": "MIA",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873162",
+    "week": 17,
+    "away": "IND",
+    "home": "CLE",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873163",
+    "week": 17,
+    "away": "MIN",
+    "home": "NYJ",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873164",
+    "week": 17,
+    "away": "NO",
+    "home": "ATL",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873165",
+    "week": 17,
+    "away": "NYG",
+    "home": "DAL",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873166",
+    "week": 17,
+    "away": "PIT",
+    "home": "TEN",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873167",
+    "week": 17,
+    "away": "SEA",
+    "home": "CAR",
+    "kickoff": "2027-01-03T18:00Z"
+  },
+  {
+    "id": "espn-401873168",
+    "week": 17,
+    "away": "LV",
+    "home": "ARI",
+    "kickoff": "2027-01-03T21:05Z"
+  },
+  {
+    "id": "espn-401873169",
+    "week": 17,
+    "away": "DET",
+    "home": "CHI",
+    "kickoff": "2027-01-03T21:25Z"
+  },
+  {
+    "id": "espn-401873170",
+    "week": 17,
+    "away": "PHI",
+    "home": "SF",
+    "kickoff": "2027-01-04T01:20Z"
+  },
+  {
+    "id": "espn-401873171",
+    "week": 17,
+    "away": "HOU",
+    "home": "GB",
+    "kickoff": "2027-01-05T01:15Z"
+  },
+  {
+    "id": "espn-401873172",
+    "week": 18,
+    "away": "ATL",
+    "home": "CAR",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873173",
+    "week": 18,
+    "away": "CHI",
+    "home": "MIN",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873174",
+    "week": 18,
+    "away": "CLE",
+    "home": "CIN",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873175",
+    "week": 18,
+    "away": "DAL",
+    "home": "WAS",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873176",
+    "week": 18,
+    "away": "DET",
+    "home": "GB",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873177",
+    "week": 18,
+    "away": "JAX",
+    "home": "IND",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873178",
+    "week": 18,
+    "away": "LV",
+    "home": "KC",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873179",
+    "week": 18,
+    "away": "LAC",
+    "home": "DEN",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873180",
+    "week": 18,
+    "away": "MIA",
+    "home": "NE",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873181",
+    "week": 18,
+    "away": "NYJ",
+    "home": "BUF",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873182",
+    "week": 18,
+    "away": "PHI",
+    "home": "NYG",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873183",
+    "week": 18,
+    "away": "PIT",
+    "home": "BAL",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873184",
+    "week": 18,
+    "away": "SF",
+    "home": "ARI",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873185",
+    "week": 18,
+    "away": "SEA",
+    "home": "LAR",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873186",
+    "week": 18,
+    "away": "TB",
+    "home": "NO",
+    "kickoff": "2027-01-10T05:00Z"
+  },
+  {
+    "id": "espn-401873187",
+    "week": 18,
+    "away": "TEN",
+    "home": "HOU",
+    "kickoff": "2027-01-10T05:00Z"
+  }
+]

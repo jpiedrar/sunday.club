@@ -69,8 +69,8 @@ export const officialWeek1Games: Game[] = [
   status: 'scheduled',
 }));
 
-// Weeks 2–18 remain fictional until a full-season provider is connected.
-const mockFutureGames: Game[] = Array.from({ length: 17 }, (_, index) => {
+// Emergency display-only fallback while the API loads the bundled official schedule.
+const fallbackFutureGames: Game[] = Array.from({ length: 17 }, (_, index) => {
   const w = index + 1;
   return Array.from({ length: 16 }, (_, i) => ({
     id: `2026-${w + 1}-${i}`,
@@ -83,4 +83,7 @@ const mockFutureGames: Game[] = Array.from({ length: 17 }, (_, index) => {
   }));
 }).flat();
 
-export const mockGames: Game[] = [...officialWeek1Games, ...mockFutureGames];
+export const fallbackGames: Game[] = [
+  ...officialWeek1Games,
+  ...fallbackFutureGames,
+];

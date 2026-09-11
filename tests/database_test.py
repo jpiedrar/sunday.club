@@ -1,5 +1,5 @@
-"""Exercise the actual production SQL against an isolated SQLite database."""
-import sqlite3, pathlib, re, time, unittest
+"""Exercise the production data and SQL against an isolated SQLite database."""
+import collections, json, sqlite3, pathlib, re, time, unittest
 root=pathlib.Path(__file__).resolve().parents[1]
 source=(root/'app/api/club/route.ts').read_text()
 pick_sql=re.search(r'`(INSERT INTO picks.*?)`',source,re.S).group(1)
@@ -8,6 +8,14 @@ score_sql=re.search(r'`(SELECT p.id,p.name,COALESCE.*?)`',source,re.S).group(1)
 reveal_sql=re.search(r'`(SELECT p.user,p.game,p.team FROM picks.*?UNION ALL.*?)`',source,re.S).group(1)
 publication_sql=re.search(r'`(INSERT INTO published_pick_entries.*?)`',source,re.S).group(1)
 class Rules(unittest.TestCase):
+ def test_complete_official_schedule(self):
+  games=json.loads((root/'lib/schedule-2026.json').read_text())
+  expected={2:16,3:16,4:16,5:15,6:14,7:14,8:14,9:15,10:14,11:13,12:16,13:14,14:15,15:16,16:16,17:16,18:16}
+  self.assertEqual(dict(collections.Counter(g['week'] for g in games)),expected)
+  self.assertEqual(len(games),256)
+  self.assertEqual(len({g['id'] for g in games}),256)
+  self.assertEqual(len({g[side] for g in games for side in ('away','home')}),32)
+  self.assertEqual((games[0]['away'],games[0]['home']),('DET','BUF'))
  def setUp(self):
   self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
   for migration in sorted((root/'drizzle').glob('*.sql')):

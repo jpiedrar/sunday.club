@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { mockGames, officialWeek1Games } from '@/lib/games';
+import { fallbackGames, officialWeek1Games } from '@/lib/games';
 
 const SCHEDULE_VERSION = 'official-2026-week-1-v1';
 export function database() {
@@ -11,7 +11,7 @@ export async function seed() {
   const found = await db.prepare('SELECT id FROM games LIMIT 1').first();
   if (!found)
     await db.batch(
-      mockGames.map((g) =>
+      fallbackGames.map((g) =>
         db
           .prepare(
             'INSERT OR IGNORE INTO games(id,week,away,home,kickoff,status,winner) VALUES(?,?,?,?,?,?,?)',
