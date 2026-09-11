@@ -346,11 +346,20 @@ export default function PickApp() {
             {theme === 'dark' ? <Sun size={21} /> : <Moon size={21} />}
           </button>
           <button
-            className="icon-button"
+            className={`icon-button${data?.profile.favoriteTeam ? ' favorite-team-avatar' : ''}`}
             aria-label="Open account"
             onClick={() => setView('account')}
           >
-            <CircleUserRound />
+            {data?.profile.favoriteTeam ? (
+              <img
+                src={`/team-logos/${data.profile.favoriteTeam}.png`}
+                alt={`${team(data.profile.favoriteTeam)[2]} logo`}
+                width="34"
+                height="34"
+              />
+            ) : (
+              <CircleUserRound />
+            )}
           </button>
         </div>
       </header>

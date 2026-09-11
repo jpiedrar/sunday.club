@@ -101,6 +101,18 @@ input:focus-visible {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+.favorite-team-avatar {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: white;
+  padding: 3px;
+}
+.favorite-team-avatar img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
 .season,
 .eyebrow {
   font-size: 12px;
@@ -1093,6 +1105,9 @@ button.outline,
 [data-theme='dark'] .result-line {
   background: #253334;
   color: #bdd0ca;
+}
+[data-theme='dark'] .favorite-team-avatar {
+  background: #eef2ef;
 }
 [data-theme='dark'] .published-team {
   background: #18372f;
