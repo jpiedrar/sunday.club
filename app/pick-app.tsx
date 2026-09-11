@@ -936,12 +936,26 @@ export default function PickApp() {
                             <b>Standings badges</b>
                             {badgeOptions
                               .filter(({ key }) => badgeEnabled(key))
-                              .map((badge) => (
-                                <p key={badge.key}>
-                                  <strong>{badge.name}:</strong>{' '}
-                                  {badge.description}
-                                </p>
-                              ))}
+                              .map((badge) => {
+                                const BadgeIcon = badgeIcons[badge.key];
+                                return (
+                                  <div
+                                    className="badge-legend-item"
+                                    key={badge.key}
+                                  >
+                                    <span
+                                      className={`player-badge ${badge.key}`}
+                                      aria-hidden="true"
+                                    >
+                                      <BadgeIcon size={15} />
+                                    </span>
+                                    <p>
+                                      <strong>{badge.name}</strong>
+                                      <span>{badge.description}</span>
+                                    </p>
+                                  </div>
+                                );
+                              })}
                             <small>
                               Counts follow the selected period. Tied leaders
                               share the badge.

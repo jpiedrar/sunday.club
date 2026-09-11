@@ -962,6 +962,21 @@ button.outline,
   margin: 5px 0;
   color: inherit;
 }
+.badge-legend-item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  margin: 8px 0;
+}
+.badge-legend-item p {
+  display: grid;
+  gap: 1px;
+  margin: 0 !important;
+}
+.badge-legend-item p span {
+  color: #6e7c76;
+}
 .badge-info [role='tooltip'] small {
   display: block;
   margin-top: 8px;
