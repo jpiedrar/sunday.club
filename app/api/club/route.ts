@@ -148,6 +148,14 @@ export async function GET(req: Request) {
       ).results;
     }
     const marketOdds = await getMarketOdds(week, games);
+    const marketWrites = Object.entries(marketOdds).map(([game, odds]) =>
+      db
+        .prepare(
+          `INSERT INTO game_market_odds(game,away_chance,home_chance,source,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(game) DO UPDATE SET away_chance=excluded.away_chance,home_chance=excluded.home_chance,source=excluded.source,updated_at=excluded.updated_at WHERE (SELECT kickoff FROM games WHERE id=excluded.game)>unixepoch('now')*1000`,
+        )
+        .bind(game, odds.away, odds.home, odds.source, odds.updatedAt),
+    );
+    if (marketWrites.length) await db.batch(marketWrites);
     const picks = (
       await db
         .prepare('SELECT game,team FROM picks WHERE league=? AND user=?')
@@ -237,16 +245,19 @@ export async function GET(req: Request) {
       publishedPicks[row.user] ??= {};
       publishedPicks[row.user][row.game] = row.team;
     }
-    const offsetRows = (
+    const allOffsetRows = (
       await db
         .prepare(
-          `SELECT o.user,o.game FROM offset_pick_changes o JOIN picks p ON p.league=o.league AND p.user=o.user AND p.game=o.game AND p.team=o.team JOIN games g ON g.id=o.game WHERE o.league=? AND g.week=? AND (SELECT COUNT(*) FROM picks same WHERE same.league=o.league AND same.game=o.game AND same.team=o.team)=1`,
+          `SELECT o.user,o.game FROM offset_pick_changes o JOIN picks p ON p.league=o.league AND p.user=o.user AND p.game=o.game AND p.team=o.team WHERE o.league=? AND (SELECT COUNT(*) FROM picks same WHERE same.league=o.league AND same.game=o.game AND same.team=o.team)=1`,
         )
-        .bind(league, week)
+        .bind(league)
         .all<{ user: string; game: string }>()
     ).results;
     const offsetPicks: Record<string, string[]> = {};
-    for (const row of offsetRows) {
+    const currentWeekIds = new Set(games.map((game) => game.id));
+    for (const row of allOffsetRows.filter((item) =>
+      currentWeekIds.has(item.game),
+    )) {
       offsetPicks[row.user] ??= [];
       offsetPicks[row.user].push(row.game);
     }
@@ -306,6 +317,103 @@ export async function GET(req: Request) {
         .bind(league, serverNow)
         .all<{ user: string; week: number }>()
     ).results;
+    const resolvedGames = (
+      await db
+        .prepare(
+          `SELECT g.id,g.week,g.away,g.home,CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END status,CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END winner FROM games g LEFT JOIN results r ON r.league=? AND r.game=g.id`,
+        )
+        .bind(league)
+        .all<{
+          id: string;
+          week: number;
+          away: string;
+          home: string;
+          status: string;
+          winner: string | null;
+        }>()
+    ).results;
+    const storedOdds = (
+      await db
+        .prepare(
+          'SELECT game,away_chance awayChance,home_chance homeChance FROM game_market_odds',
+        )
+        .all<{ game: string; awayChance: number; homeChance: number }>()
+    ).results;
+    const oddsByGame = new Map(storedOdds.map((row) => [row.game, row]));
+    const picksByGame = new Map<string, typeof badgeRows>();
+    for (const pick of badgeRows) {
+      const gamePicks = picksByGame.get(pick.game) ?? [];
+      gamePicks.push(pick);
+      picksByGame.set(pick.game, gamePicks);
+    }
+    const offsetSet = new Set(
+      allOffsetRows.map((row) => `${row.user}:${row.game}`),
+    );
+    const loneWolfRows: { user: string; week: number }[] = [];
+    const upsetKingRows: { user: string; week: number }[] = [];
+    const gutsRows: { user: string; week: number }[] = [];
+    for (const game of resolvedGames.filter(
+      (item) => item.status === 'final' && item.winner,
+    )) {
+      const gamePicks = picksByGame.get(game.id) ?? [];
+      const correct = gamePicks.filter((pick) => pick.team === game.winner);
+      if (correct.length === 1)
+        loneWolfRows.push({ user: correct[0].user, week: game.week });
+      const odds = oddsByGame.get(game.id);
+      const underdog =
+        odds && odds.awayChance !== odds.homeChance
+          ? odds.awayChance < odds.homeChance
+            ? game.away
+            : game.home
+          : null;
+      for (const pick of correct) {
+        if (pick.team === underdog)
+          upsetKingRows.push({ user: pick.user, week: game.week });
+        const popularity = countsByGame.get(game.id);
+        const wild =
+          Boolean(popularity?.total) &&
+          (popularity?.teams.get(pick.team) ?? 0) * 5 <= popularity!.total;
+        if (wild || offsetSet.has(`${pick.user}:${game.id}`))
+          gutsRows.push({ user: pick.user, week: game.week });
+      }
+    }
+    const perfectWeekRows: { user: string; week: number }[] = [];
+    for (let candidateWeek = 1; candidateWeek <= 18; candidateWeek++) {
+      const weekGames = resolvedGames.filter(
+        (game) => game.week === candidateWeek && game.status !== 'cancelled',
+      );
+      if (
+        !weekGames.length ||
+        weekGames.some((game) => game.status !== 'final' || !game.winner)
+      )
+        continue;
+      for (const standing of standings) {
+        const player = standing as { id: string };
+        if (
+          weekGames.every((game) =>
+            (picksByGame.get(game.id) ?? []).some(
+              (pick) => pick.user === player.id && pick.team === game.winner,
+            ),
+          )
+        )
+          perfectWeekRows.push({ user: player.id, week: candidateWeek });
+      }
+    }
+    const addPeriodStats = (
+      stats: Record<string, number>,
+      prefix: string,
+      rows: { user: string; week: number }[],
+      user: string,
+    ) => {
+      const playerRows = rows.filter((row) => row.user === user);
+      stats[`${prefix}Season`] = playerRows.length;
+      stats[`${prefix}Weekly`] = playerRows.filter(
+        (row) => row.week === week,
+      ).length;
+      stats[`${prefix}Monthly`] = playerRows.filter(
+        (row) => row.week >= monthStart && row.week <= monthEnd,
+      ).length;
+    };
     const standingsWithBadges = standings.map((standing) => {
       const player = standing as Record<string, unknown> & {
         id: string;
@@ -324,6 +432,18 @@ export async function GET(req: Request) {
         missedPickWeekly: 0,
         missedPickMonthly: 0,
         missedPickSeason: 0,
+        perfectWeekWeekly: 0,
+        perfectWeekMonthly: 0,
+        perfectWeekSeason: 0,
+        loneWolfWeekly: 0,
+        loneWolfMonthly: 0,
+        loneWolfSeason: 0,
+        upsetKingWeekly: 0,
+        upsetKingMonthly: 0,
+        upsetKingSeason: 0,
+        gutsWeekly: 0,
+        gutsMonthly: 0,
+        gutsSeason: 0,
       };
       for (const row of badgeRows.filter((pick) => pick.user === player.id)) {
         const favoriteTeam = player.favoriteTeam;
@@ -364,6 +484,10 @@ export async function GET(req: Request) {
         if (missed.week >= monthStart && missed.week <= monthEnd)
           stats.missedPickMonthly++;
       }
+      addPeriodStats(stats, 'perfectWeek', perfectWeekRows, player.id);
+      addPeriodStats(stats, 'loneWolf', loneWolfRows, player.id);
+      addPeriodStats(stats, 'upsetKing', upsetKingRows, player.id);
+      addPeriodStats(stats, 'guts', gutsRows, player.id);
       const seasonPrediction = superBowlPicks.find(
         (prediction) => prediction.user === player.id,
       );

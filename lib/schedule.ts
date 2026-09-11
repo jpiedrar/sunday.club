@@ -24,6 +24,11 @@ export async function syncOfficialSchedule(week: number, db: D1Database) {
     await db.batch([
       db
         .prepare(
+          'DELETE FROM game_market_odds WHERE game IN (SELECT id FROM games WHERE week=?)',
+        )
+        .bind(week),
+      db
+        .prepare(
           'DELETE FROM offset_pick_changes WHERE game IN (SELECT id FROM games WHERE week=?)',
         )
         .bind(week),

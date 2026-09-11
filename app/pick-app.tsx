@@ -58,6 +58,18 @@ type Standing = Member & {
   missedPickWeekly: number;
   missedPickMonthly: number;
   missedPickSeason: number;
+  perfectWeekWeekly: number;
+  perfectWeekMonthly: number;
+  perfectWeekSeason: number;
+  loneWolfWeekly: number;
+  loneWolfMonthly: number;
+  loneWolfSeason: number;
+  upsetKingWeekly: number;
+  upsetKingMonthly: number;
+  upsetKingSeason: number;
+  gutsWeekly: number;
+  gutsMonthly: number;
+  gutsSeason: number;
   nostradamus: boolean;
 };
 type MemberCompletion = Member & { picked: number };
@@ -276,7 +288,15 @@ export default function PickApp() {
   );
   const periodCount = (
     standing: Standing,
-    kind: 'against' | 'wild' | 'favorite-loss' | 'missed',
+    kind:
+      | 'against'
+      | 'wild'
+      | 'favorite-loss'
+      | 'missed'
+      | 'perfect-week'
+      | 'lone-wolf'
+      | 'upset-king'
+      | 'guts',
   ) => {
     if (kind === 'against')
       return period === 'weekly'
@@ -296,6 +316,30 @@ export default function PickApp() {
         : period === 'monthly'
           ? standing.favoriteLossMonthly
           : standing.favoriteLossSeason;
+    if (kind === 'perfect-week')
+      return period === 'weekly'
+        ? standing.perfectWeekWeekly
+        : period === 'monthly'
+          ? standing.perfectWeekMonthly
+          : standing.perfectWeekSeason;
+    if (kind === 'lone-wolf')
+      return period === 'weekly'
+        ? standing.loneWolfWeekly
+        : period === 'monthly'
+          ? standing.loneWolfMonthly
+          : standing.loneWolfSeason;
+    if (kind === 'upset-king')
+      return period === 'weekly'
+        ? standing.upsetKingWeekly
+        : period === 'monthly'
+          ? standing.upsetKingMonthly
+          : standing.upsetKingSeason;
+    if (kind === 'guts')
+      return period === 'weekly'
+        ? standing.gutsWeekly
+        : period === 'monthly'
+          ? standing.gutsMonthly
+          : standing.gutsSeason;
     return period === 'weekly'
       ? standing.missedPickWeekly
       : period === 'monthly'
@@ -317,6 +361,18 @@ export default function PickApp() {
   const missedPickLeaderCount = Math.max(
     0,
     ...leaderboard.map((standing) => periodCount(standing, 'missed')),
+  );
+  const loneWolfLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'lone-wolf')),
+  );
+  const upsetKingLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'upset-king')),
+  );
+  const gutsLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'guts')),
   );
   const month = Math.ceil(week / 4);
   function smallForm(
@@ -803,6 +859,22 @@ export default function PickApp() {
                             <strong>NOSTRADAMUS:</strong> correctly predicted
                             the Super Bowl champion before Week 5.
                           </p>
+                          <p>
+                            <strong>PERFECT WEEK:</strong> correctly picked
+                            every completed game in a week.
+                          </p>
+                          <p>
+                            <strong>LONE WOLF:</strong> most games as the only
+                            member who picked the winner.
+                          </p>
+                          <p>
+                            <strong>UPSET KING:</strong> most correct picks of
+                            the market underdog.
+                          </p>
+                          <p>
+                            <strong>NO GUTS, NO GLORY:</strong> most correct
+                            Wild or Upset picks.
+                          </p>
                           <small>
                             Counts follow the selected period. Tied leaders
                             share the badge.
@@ -844,6 +916,16 @@ export default function PickApp() {
                                 'favorite-loss',
                               );
                               const missedPickCount = periodCount(p, 'missed');
+                              const perfectWeekCount = periodCount(
+                                p,
+                                'perfect-week',
+                              );
+                              const loneWolfCount = periodCount(p, 'lone-wolf');
+                              const upsetKingCount = periodCount(
+                                p,
+                                'upset-king',
+                              );
+                              const gutsCount = periodCount(p, 'guts');
                               return (
                                 <TableRow key={p.id}>
                                   <TableCell>
@@ -893,6 +975,34 @@ export default function PickApp() {
                                           NOSTRADAMUS
                                         </span>
                                       )}
+                                      {perfectWeekCount > 0 && (
+                                        <span className="player-tag perfect-week">
+                                          PERFECT WEEK
+                                          {perfectWeekCount > 1
+                                            ? ` ×${perfectWeekCount}`
+                                            : ''}
+                                        </span>
+                                      )}
+                                      {loneWolfLeaderCount > 0 &&
+                                        loneWolfCount ===
+                                          loneWolfLeaderCount && (
+                                          <span className="player-tag lone-wolf">
+                                            LONE WOLF ×{loneWolfCount}
+                                          </span>
+                                        )}
+                                      {upsetKingLeaderCount > 0 &&
+                                        upsetKingCount ===
+                                          upsetKingLeaderCount && (
+                                          <span className="player-tag upset-king">
+                                            UPSET KING ×{upsetKingCount}
+                                          </span>
+                                        )}
+                                      {gutsLeaderCount > 0 &&
+                                        gutsCount === gutsLeaderCount && (
+                                          <span className="player-tag no-guts">
+                                            NO GUTS, NO GLORY ×{gutsCount}
+                                          </span>
+                                        )}
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right score">
@@ -1057,7 +1167,7 @@ export default function PickApp() {
                                               }
                                               title={
                                                 isOffset
-                                                  ? 'Offset · changed after publication and currently the league’s only pick for this team'
+                                                  ? 'Upset · changed after publication and currently the league’s only pick for this team'
                                                   : isWildPick
                                                     ? 'Wild pick · selected by 20% or less of the league'
                                                     : undefined
@@ -1072,7 +1182,7 @@ export default function PickApp() {
                                               {(isOffset || isWildPick) && (
                                                 <small>
                                                   {isOffset
-                                                    ? 'OFFSET'
+                                                    ? 'UPSET'
                                                     : 'WILD PICK'}
                                                 </small>
                                               )}
@@ -1098,7 +1208,7 @@ export default function PickApp() {
                           </div>
                           <p className="wild-pick-note">
                             WILD marks a team selected by 20% or less of the
-                            league for that matchup. OFFSET marks a unique pick
+                            league for that matchup. UPSET marks a unique pick
                             changed after that matchup became public.
                           </p>
                         </>

@@ -853,6 +853,22 @@ button.outline,
   background: #dcebdc;
   color: #2e683a;
 }
+.player-tag.perfect-week {
+  background: #e7edc5;
+  color: #526019;
+}
+.player-tag.lone-wolf {
+  background: #e6e9ec;
+  color: #45515b;
+}
+.player-tag.upset-king {
+  background: #eee6ff;
+  color: #5b3998;
+}
+.player-tag.no-guts {
+  background: #ffe3d7;
+  color: #8b3e21;
+}
 .badge-info {
   position: relative;
   display: flex;

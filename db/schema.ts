@@ -81,6 +81,15 @@ export const offsetPickChanges = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.league, t.user, t.game] })],
 );
+export const gameMarketOdds = sqliteTable('game_market_odds', {
+  game: text('game')
+    .primaryKey()
+    .references(() => games.id),
+  awayChance: integer('away_chance').notNull(),
+  homeChance: integer('home_chance').notNull(),
+  source: text('source').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
 export const superBowlPicks = sqliteTable(
   'super_bowl_picks',
   {
