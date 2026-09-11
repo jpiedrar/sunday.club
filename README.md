@@ -18,7 +18,7 @@ TypeScript, React, Tailwind 4, Vinext (Next.js-compatible App Router), D1 SQL, a
 - `db/store.ts`: D1 access and idempotent fallback-data seeding.
 - `lib/games.ts`: Week 1 and temporary offline fallback data.
 - `lib/odds.ts`: live moneyline lookup, fair-probability calculation, and Week 1 fallback values.
-- `lib/results.ts`: automatic final-result synchronization from the NFL scoreboard feed. Previously saved commissioner results remain as a fallback until the live feed supplies an authoritative final.
+- `lib/results.ts`: automatic final-result synchronization from ESPN’s web scoreboard feed with cache bypassing. Previously saved commissioner results remain as a fallback until the live feed supplies an authoritative final.
 - `lib/schedule.ts`, `schedule-2026.json`: official Weeks 2–18 population with stable provider IDs and UTC kickoffs.
 - `public/manifest.webmanifest`, `sw.js`: installable PWA shell and offline notice. Authenticated pages/data are never cached. Offline pick writes are not queued.
 

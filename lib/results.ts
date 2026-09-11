@@ -30,8 +30,8 @@ export async function syncLiveResults(
   if (!games.length) return false;
   try {
     const response = await fetch(
-      `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=${week}`,
-      { headers: { Accept: 'application/json' } },
+      `https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=2026&seasontype=2&week=${week}`,
+      { cache: 'no-store', headers: { Accept: 'application/json' } },
     );
     if (!response.ok) return false;
     const payload = (await response.json()) as EspnResponse;

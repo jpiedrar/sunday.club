@@ -17,6 +17,8 @@ assert request('GET','/api/club',signed=False)[0]==401
 assert request('POST','/api/club',{'action':'create','name':'Blocked'},origin='https://other.test')[0]==403
 status,data=request('GET','/api/club?week=1');assert status==200,(status,data)
 assert data['games'][0]['away']=='NE' and data['games'][0]['home']=='SEA'
+assert data['games'][1]['away']=='SF' and data['games'][1]['home']=='LAR'
+assert data['games'][1]['status']=='final' and data['games'][1]['winner']=='SF'
 status,result=request('POST','/api/club',{'action':'create','name':'Local verification league'});assert status==200,result
 league=result['league']
 assert request('GET','/api/club?league=not-a-member')[0]==403
