@@ -205,6 +205,11 @@ export default function PickApp() {
   const [remove, setRemove] = useState<Member | null>(null);
   const [installed, setInstalled] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [activeBadge, setActiveBadge] = useState<{
+    player: string;
+    badge: BadgeKey;
+    count?: number;
+  } | null>(null);
   const offset = useRef(0);
   const requestId = useRef(0);
   const load = useCallback(async () => {
@@ -330,7 +335,7 @@ export default function PickApp() {
   const owner = !!league && league.owner === data?.profile.id;
   const badgeEnabled = (badge: BadgeKey) =>
     data?.badgeSettings[badge] !== false;
-  const standingsBadge = (badge: BadgeKey, count?: number) => {
+  const standingsBadge = (player: string, badge: BadgeKey, count?: number) => {
     const option = badgeOptions.find((item) => item.key === badge)!;
     const Icon = badgeIcons[badge];
     return (
@@ -338,13 +343,15 @@ export default function PickApp() {
         type="button"
         className={`player-badge ${badge}`}
         aria-label={`${option.name}${count ? `, ${count}` : ''}: ${option.description}`}
+        aria-expanded={
+          activeBadge?.player === player && activeBadge.badge === badge
+        }
+        onMouseEnter={() => setActiveBadge({ player, badge, count })}
+        onMouseLeave={() => setActiveBadge(null)}
+        onFocus={() => setActiveBadge({ player, badge, count })}
+        onBlur={() => setActiveBadge(null)}
       >
         <Icon size={15} aria-hidden="true" />
-        <span role="tooltip">
-          <b>{option.name}</b>
-          {count ? <small> ×{count}</small> : null}
-          <p>{option.description}</p>
-        </span>
       </button>
     );
   };
@@ -995,6 +1002,7 @@ export default function PickApp() {
                                         againstLeaderCount > 0 &&
                                         againstCount === againstLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'vende-patrias',
                                           againstCount,
                                         )}
@@ -1002,6 +1010,7 @@ export default function PickApp() {
                                         wildLeaderCount > 0 &&
                                         wildCount === wildLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'wild-picker',
                                           wildCount,
                                         )}
@@ -1010,6 +1019,7 @@ export default function PickApp() {
                                         favoriteLossCount ===
                                           favoriteLossLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'titanic-musician',
                                           favoriteLossCount,
                                         )}
@@ -1018,15 +1028,17 @@ export default function PickApp() {
                                         missedPickCount ===
                                           missedPickLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'mama-pichas',
                                           missedPickCount,
                                         )}
                                       {badgeEnabled('nostradamus') &&
                                         p.nostradamus &&
-                                        standingsBadge('nostradamus')}
+                                        standingsBadge(p.id, 'nostradamus')}
                                       {badgeEnabled('perfect-week') &&
                                         perfectWeekCount > 0 &&
                                         standingsBadge(
+                                          p.id,
                                           'perfect-week',
                                           perfectWeekCount,
                                         )}
@@ -1034,6 +1046,7 @@ export default function PickApp() {
                                         loneWolfLeaderCount > 0 &&
                                         loneWolfCount === loneWolfLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'lone-wolf',
                                           loneWolfCount,
                                         )}
@@ -1042,6 +1055,7 @@ export default function PickApp() {
                                         upsetKingCount ===
                                           upsetKingLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'upset-king',
                                           upsetKingCount,
                                         )}
@@ -1049,9 +1063,33 @@ export default function PickApp() {
                                         gutsLeaderCount > 0 &&
                                         gutsCount === gutsLeaderCount &&
                                         standingsBadge(
+                                          p.id,
                                           'no-guts-no-glory',
                                           gutsCount,
                                         )}
+                                      {activeBadge?.player === p.id &&
+                                        (() => {
+                                          const selected = badgeOptions.find(
+                                            (badge) =>
+                                              badge.key === activeBadge.badge,
+                                          )!;
+                                          return (
+                                            <span
+                                              className="badge-inline-tooltip"
+                                              role="tooltip"
+                                            >
+                                              <b>
+                                                {selected.name}
+                                                {activeBadge.count
+                                                  ? ` ×${activeBadge.count}`
+                                                  : ''}
+                                              </b>
+                                              <small>
+                                                {selected.description}
+                                              </small>
+                                            </span>
+                                          );
+                                        })()}
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right score">

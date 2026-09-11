@@ -875,6 +875,8 @@ button.outline,
   place-items: center;
   width: 28px;
   height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -910,39 +912,24 @@ button.outline,
   background: #ffe3d7;
   color: #8b3e21;
 }
-.player-badge [role='tooltip'] {
-  position: absolute;
-  z-index: 8;
-  top: 34px;
-  left: 0;
-  width: 220px;
-  padding: 10px 12px;
+.badge-inline-tooltip {
+  display: grid;
+  flex: 1 0 100%;
+  gap: 3px;
+  width: 100%;
+  margin-top: 3px;
+  padding: 9px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: white;
-  box-shadow: 0 10px 26px rgba(25, 48, 40, 0.2);
+  background: #f6f8f7;
   color: var(--foreground);
   font-size: 11px;
   line-height: 1.4;
   text-align: left;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-3px);
-  transition: 120ms ease;
-  pointer-events: none;
 }
-.player-badge [role='tooltip'] small {
+.badge-inline-tooltip small {
   color: #708079;
-}
-.player-badge [role='tooltip'] p {
-  margin: 4px 0 0;
-  font-weight: 400;
-}
-.player-badge:hover [role='tooltip'],
-.player-badge:focus-visible [role='tooltip'] {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+  white-space: normal;
 }
 .badge-info {
   position: relative;
@@ -1359,7 +1346,7 @@ button.outline,
   background: #eef2ef;
 }
 [data-theme='dark'] .badge-info [role='tooltip'],
-[data-theme='dark'] .player-badge [role='tooltip'] {
+[data-theme='dark'] .badge-inline-tooltip {
   background: #182829;
 }
 [data-theme='dark'] .super-bowl-card {
