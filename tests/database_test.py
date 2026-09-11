@@ -8,6 +8,7 @@ score_sql=re.search(r'`(SELECT p.id,p.name,p.favorite_team favoriteTeam,COALESCE
 reveal_sql=re.search(r'`(SELECT p.user,p.game,p.team FROM picks.*?UNION ALL.*?)`',source,re.S).group(1)
 publication_sql=re.search(r'`(INSERT INTO published_pick_entries.*?)`',source,re.S).group(1)
 favorite_loss_sql=re.search(r'`(SELECT k.user,g.week FROM picks k JOIN profiles p.*?)`',source,re.S).group(1)
+missed_pick_sql=re.search(r'`(SELECT m.user,g.week FROM members m CROSS JOIN games g.*?)`',source,re.S).group(1)
 class Rules(unittest.TestCase):
  def test_complete_official_schedule(self):
   games=json.loads((root/'lib/schedule-2026.json').read_text())
@@ -23,7 +24,7 @@ class Rules(unittest.TestCase):
    self.db.executescript(migration.read_text())
   self.db.executemany('INSERT INTO profiles(id,name) VALUES(?,?)',[('a','Alice'),('b','Bob'),('c','Chris')])
   self.db.executemany('INSERT INTO leagues VALUES(?,?,?,?,?)',[('l','League','a','CODE',2026),('other','Other','c','OTHER',2026)])
-  self.db.executemany('INSERT INTO members VALUES(?,?)',[('l','a'),('l','b'),('other','c')])
+  self.db.executemany('INSERT INTO members(league,user) VALUES(?,?)',[('l','a'),('l','b'),('other','c')])
   self.now=int(time.time())*1000
   self.db.executemany('INSERT INTO games VALUES(?,?,?,?,?,?,?)',[('future',2,'KC','BUF',self.now+100000,'scheduled',None),('locked',2,'KC','BUF',self.now,'scheduled',None),('past',1,'KC','BUF',self.now-100000,'final','KC')])
  def pick(self,user='a',game='future',team='KC'):
@@ -63,6 +64,10 @@ class Rules(unittest.TestCase):
   self.db.execute("UPDATE games SET winner='BUF' WHERE id='past'")
   losses=self.db.execute(favorite_loss_sql,('l',)).fetchall()
   self.assertEqual([(row['user'],row['week']) for row in losses],[('a',1)])
+ def test_missed_picks_after_kickoff(self):
+  self.db.execute("INSERT INTO results VALUES('l','locked',NULL,'cancelled')")
+  missed=self.db.execute(missed_pick_sql,('l',self.now)).fetchall()
+  self.assertEqual([(row['user'],row['week']) for row in missed],[('a',1),('b',1)])
  def test_weekly_vs_season(self):
   self.db.execute("INSERT INTO picks VALUES('l','a','past','KC')")
   row=self.db.execute(score_sql,(2,1,4,'l')).fetchone()

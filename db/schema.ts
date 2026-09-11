@@ -28,6 +28,7 @@ export const members = sqliteTable(
     user: text('user')
       .notNull()
       .references(() => profiles.id),
+    joinedAt: integer('joined_at').notNull().default(0),
   },
   (t) => [
     primaryKey({ columns: [t.league, t.user] }),

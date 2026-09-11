@@ -264,6 +264,14 @@ export async function GET(req: Request) {
         .bind(league)
         .all<{ user: string; week: number }>()
     ).results;
+    const missedPickRows = (
+      await db
+        .prepare(
+          `SELECT m.user,g.week FROM members m CROSS JOIN games g LEFT JOIN results r ON r.league=m.league AND r.game=g.id WHERE m.league=? AND g.kickoff>=m.joined_at AND g.kickoff<=? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END<>'cancelled' AND NOT EXISTS(SELECT 1 FROM picks missing WHERE missing.league=m.league AND missing.user=m.user AND missing.game=g.id)`,
+        )
+        .bind(league, serverNow)
+        .all<{ user: string; week: number }>()
+    ).results;
     const standingsWithBadges = standings.map((standing) => {
       const player = standing as Record<string, unknown> & {
         id: string;
@@ -279,6 +287,9 @@ export async function GET(req: Request) {
         favoriteLossWeekly: 0,
         favoriteLossMonthly: 0,
         favoriteLossSeason: 0,
+        missedPickWeekly: 0,
+        missedPickMonthly: 0,
+        missedPickSeason: 0,
       };
       for (const row of badgeRows.filter((pick) => pick.user === player.id)) {
         const favoriteTeam = player.favoriteTeam;
@@ -310,6 +321,14 @@ export async function GET(req: Request) {
         if (loss.week === week) stats.favoriteLossWeekly++;
         if (loss.week >= monthStart && loss.week <= monthEnd)
           stats.favoriteLossMonthly++;
+      }
+      for (const missed of missedPickRows.filter(
+        (result) => result.user === player.id,
+      )) {
+        stats.missedPickSeason++;
+        if (missed.week === week) stats.missedPickWeekly++;
+        if (missed.week >= monthStart && missed.week <= monthEnd)
+          stats.missedPickMonthly++;
       }
       return { ...standing, ...stats };
     });
@@ -428,7 +447,9 @@ export async function POST(req: Request) {
           .prepare('INSERT INTO leagues(id,name,owner,code) VALUES(?,?,?,?)')
           .bind(id, str('name', 50), u.userId, code),
         db
-          .prepare('INSERT INTO members(league,user) VALUES(?,?)')
+          .prepare(
+            "INSERT INTO members(league,user,joined_at) VALUES(?,?,unixepoch('now')*1000)",
+          )
           .bind(id, u.userId),
       ]);
       return json({ ok: true, league: id });
@@ -444,7 +465,9 @@ export async function POST(req: Request) {
           404,
         );
       await db
-        .prepare('INSERT OR IGNORE INTO members(league,user) VALUES(?,?)')
+        .prepare(
+          "INSERT OR IGNORE INTO members(league,user,joined_at) VALUES(?,?,unixepoch('now')*1000)",
+        )
         .bind(row.id, u.userId)
         .run();
       return json({ ok: true, league: row.id });

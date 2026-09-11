@@ -55,6 +55,9 @@ type Standing = Member & {
   favoriteLossWeekly: number;
   favoriteLossMonthly: number;
   favoriteLossSeason: number;
+  missedPickWeekly: number;
+  missedPickMonthly: number;
+  missedPickSeason: number;
 };
 type MemberCompletion = Member & { picked: number };
 type State = {
@@ -264,7 +267,7 @@ export default function PickApp() {
   );
   const periodCount = (
     standing: Standing,
-    kind: 'against' | 'wild' | 'favorite-loss',
+    kind: 'against' | 'wild' | 'favorite-loss' | 'missed',
   ) => {
     if (kind === 'against')
       return period === 'weekly'
@@ -278,11 +281,17 @@ export default function PickApp() {
         : period === 'monthly'
           ? standing.wildMonthly
           : standing.wildSeason;
+    if (kind === 'favorite-loss')
+      return period === 'weekly'
+        ? standing.favoriteLossWeekly
+        : period === 'monthly'
+          ? standing.favoriteLossMonthly
+          : standing.favoriteLossSeason;
     return period === 'weekly'
-      ? standing.favoriteLossWeekly
+      ? standing.missedPickWeekly
       : period === 'monthly'
-        ? standing.favoriteLossMonthly
-        : standing.favoriteLossSeason;
+        ? standing.missedPickMonthly
+        : standing.missedPickSeason;
   };
   const againstLeaderCount = Math.max(
     0,
@@ -295,6 +304,10 @@ export default function PickApp() {
   const favoriteLossLeaderCount = Math.max(
     0,
     ...leaderboard.map((standing) => periodCount(standing, 'favorite-loss')),
+  );
+  const missedPickLeaderCount = Math.max(
+    0,
+    ...leaderboard.map((standing) => periodCount(standing, 'missed')),
   );
   const month = Math.ceil(week / 4);
   function smallForm(
@@ -691,6 +704,10 @@ export default function PickApp() {
                             <strong>TITANIC MUSICIAN:</strong> most incorrect
                             picks placed on their own favorite team.
                           </p>
+                          <p>
+                            <strong>MAMA PICHAS:</strong> most games that
+                            started without a submitted pick.
+                          </p>
                           <small>
                             Counts follow the selected period. Tied leaders
                             share the badge.
@@ -731,6 +748,7 @@ export default function PickApp() {
                                 p,
                                 'favorite-loss',
                               );
+                              const missedPickCount = periodCount(p, 'missed');
                               return (
                                 <TableRow key={p.id}>
                                   <TableCell>
@@ -766,6 +784,13 @@ export default function PickApp() {
                                           <span className="player-tag titanic-musician">
                                             TITANIC MUSICIAN ×
                                             {favoriteLossCount}
+                                          </span>
+                                        )}
+                                      {missedPickLeaderCount > 0 &&
+                                        missedPickCount ===
+                                          missedPickLeaderCount && (
+                                          <span className="player-tag mama-pichas">
+                                            MAMA PICHAS ×{missedPickCount}
                                           </span>
                                         )}
                                     </div>

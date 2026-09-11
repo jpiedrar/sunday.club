@@ -792,6 +792,10 @@ button.outline,
   background: #dfeaf5;
   color: #315c7c;
 }
+.player-tag.mama-pichas {
+  background: #eadff2;
+  color: #69417b;
+}
 .badge-info {
   position: relative;
   display: flex;
