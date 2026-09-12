@@ -668,9 +668,9 @@ export default function PickApp() {
                         <span className="eyebrow">SEASON PREDICTION</span>
                         <h2>Who wins the Super Bowl?</h2>
                         <p>
-                          {data.superBowlPoints
-                            ? `${data.superBowlPoints} season ${data.superBowlPoints === 1 ? 'point' : 'points'} for a correct prediction.`
-                            : 'No standings points.'}
+                          A correct prediction wins {data.superBowlPoints}{' '}
+                          season{' '}
+                          {data.superBowlPoints === 1 ? 'point' : 'points'}.
                           {badgeEnabled('nostradamus') &&
                             ' Correct picks earn the NOSTRADAMUS badge.'}
                         </p>
@@ -726,25 +726,10 @@ export default function PickApp() {
                         )}
                       </form>
                       <div className="super-bowl-deadline">
-                        {data.superBowlLocked ? (
-                          <>
-                            <LockKeyhole size={13} /> Predictions locked
-                          </>
-                        ) : (
-                          <>
-                            Open until{' '}
-                            {new Date(data.superBowlDeadline).toLocaleString(
-                              undefined,
-                              {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                timeZoneName: 'short',
-                              },
-                            )}
-                          </>
-                        )}
+                        {data.superBowlLocked && <LockKeyhole size={13} />}
+                        {data.superBowlLocked
+                          ? `Predictions locked · Deadline was Week ${data.superBowlLockWeek}`
+                          : `Deadline: Week ${data.superBowlLockWeek}`}
                       </div>
                     </section>
                   )}
