@@ -1,6 +1,12 @@
 'use client';
 /* eslint-disable next/no-html-link-for-pages -- Sites sign-in and sign-out require full top-level navigation. */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+} from 'react';
 import {
   ArrowUpRight,
   Check,
@@ -21,7 +27,6 @@ import {
   Flag,
   Flame,
   ShipWheel,
-  AlarmClock,
   Brain,
   CircleCheckBig,
   PawPrint,
@@ -115,7 +120,8 @@ const badgeOptions: { key: BadgeKey; name: string; description: string }[] = [
   {
     key: 'nostradamus',
     name: 'NOSTRADAMUS',
-    description: 'Correctly predicted the Super Bowl champion before Week 5.',
+    description:
+      'Correctly predicted the Super Bowl champion before the league deadline.',
   },
   {
     key: 'perfect-week',
@@ -138,17 +144,49 @@ const badgeOptions: { key: BadgeKey; name: string; description: string }[] = [
     description: 'Most correct Wild or Upset picks.',
   },
 ];
+function MamaPichasIcon({
+  size = 15,
+  'aria-hidden': ariaHidden,
+}: {
+  size?: number;
+  'aria-hidden'?: boolean | 'true' | 'false';
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden={ariaHidden}
+    >
+      <path d="M9 15V7a3 3 0 0 1 6 0v8" />
+      <path d="M9 14c-2.4-1.2-4 .2-4 2.4C5 19 7 21 9.5 19.5" />
+      <path d="M15 14c2.4-1.2 4 .2 4 2.4 0 2.6-2 4.6-4.5 3.1" />
+      <path d="M9.5 19.5h5" />
+    </svg>
+  );
+}
 const badgeIcons = {
   'vende-patrias': Flag,
   'wild-picker': Flame,
   'titanic-musician': ShipWheel,
-  'mama-pichas': AlarmClock,
+  'mama-pichas': MamaPichasIcon,
   nostradamus: Brain,
   'perfect-week': CircleCheckBig,
   'lone-wolf': PawPrint,
   'upset-king': Crown,
   'no-guts-no-glory': Swords,
-} satisfies Record<BadgeKey, typeof Flag>;
+} satisfies Record<
+  BadgeKey,
+  ComponentType<{
+    size?: number;
+    'aria-hidden'?: boolean | 'true' | 'false';
+  }>
+>;
 type State = {
   profile: Member;
   leagues: League[];
