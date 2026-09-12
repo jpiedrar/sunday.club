@@ -154,7 +154,7 @@ function MamaPichasIcon({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
+      viewBox="-1 -1 26 26"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -162,10 +162,11 @@ function MamaPichasIcon({
       strokeLinejoin="round"
       aria-hidden={ariaHidden}
     >
-      <path d="M9 15V7a3 3 0 0 1 6 0v8" />
-      <path d="M9 14c-2.4-1.2-4 .2-4 2.4C5 19 7 21 9.5 19.5" />
-      <path d="M15 14c2.4-1.2 4 .2 4 2.4 0 2.6-2 4.6-4.5 3.1" />
-      <path d="M9.5 19.5h5" />
+      <path d="M7.5 8.5v7c-2.6.4-4.5 2.4-4.5 4.7C3 22.3 4.8 24 7.2 24c2 0 3.7-.6 4.8-1.6 1.1 1 2.8 1.6 4.8 1.6 2.4 0 4.2-1.7 4.2-3.8 0-2.3-1.9-4.3-4.5-4.7v-7" />
+      <path d="M7.5 8.5c-2 0-3.2-2-2.3-3.7C7.4.9 9.6.8 12 .8s4.6.1 6.8 4c.9 1.7-.3 3.7-2.3 3.7-1.7 0-3.1-.7-4.5-2-1.4 1.3-2.8 2-4.5 2Z" />
+      <path d="M12 .8v2.1" />
+      <path d="M7.5 15.5c2.2-.3 3.7-1.7 4.1-3.8" />
+      <path d="M10.2 19.5c0 1.2.7 2.3 1.8 2.9" />
     </svg>
   );
 }
