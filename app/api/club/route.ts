@@ -23,6 +23,25 @@ const badgeKeys = [
   'upset-king',
   'no-guts-no-glory',
 ] as const;
+async function superBowlConfig(league: string) {
+  const db = database();
+  const settings = await db
+    .prepare(
+      'SELECT super_bowl_lock_week lockWeek,super_bowl_points points FROM leagues WHERE id=?',
+    )
+    .bind(league)
+    .first<{ lockWeek: number; points: number }>();
+  const lockWeek = settings?.lockWeek ?? 5;
+  const firstGame = await db
+    .prepare('SELECT MIN(kickoff) deadline FROM games WHERE week=?')
+    .bind(lockWeek)
+    .first<{ deadline: number | null }>();
+  return {
+    lockWeek,
+    points: settings?.points ?? 0,
+    deadline: firstGame?.deadline ?? SUPER_BOWL_PICK_DEADLINE,
+  };
+}
 class Problem extends Error {
   constructor(
     message: string,
@@ -121,6 +140,8 @@ export async function GET(req: Request) {
         members: [],
         superBowlPick: null,
         superBowlWinner: await syncSuperBowlWinner(db),
+        superBowlLockWeek: 5,
+        superBowlPoints: 0,
         superBowlDeadline: SUPER_BOWL_PICK_DEADLINE,
         superBowlLocked: serverNow >= SUPER_BOWL_PICK_DEADLINE,
         league: null,
@@ -129,6 +150,9 @@ export async function GET(req: Request) {
       });
     }
     await membership(league, u.userId);
+    const initialSuperBowlConfig = await superBowlConfig(league);
+    await syncOfficialSchedule(initialSuperBowlConfig.lockWeek, db);
+    const superBowlSettings = await superBowlConfig(league);
     const savedBadgeSettings = (
       await db
         .prepare(
@@ -521,6 +545,11 @@ export async function GET(req: Request) {
       return {
         ...standing,
         ...stats,
+        season:
+          Number((standing as { season: number }).season) +
+          (superBowlWinner && seasonPrediction?.team === superBowlWinner
+            ? superBowlSettings.points
+            : 0),
         nostradamus: Boolean(
           superBowlWinner && seasonPrediction?.team === superBowlWinner,
         ),
@@ -550,8 +579,10 @@ export async function GET(req: Request) {
       members,
       superBowlPick: superBowlPick?.team ?? null,
       superBowlWinner,
-      superBowlDeadline: SUPER_BOWL_PICK_DEADLINE,
-      superBowlLocked: serverNow >= SUPER_BOWL_PICK_DEADLINE,
+      superBowlLockWeek: superBowlSettings.lockWeek,
+      superBowlPoints: superBowlSettings.points,
+      superBowlDeadline: superBowlSettings.deadline,
+      superBowlLocked: serverNow >= superBowlSettings.deadline,
       scheduleOfficial,
       serverNow,
     });
@@ -646,34 +677,29 @@ export async function POST(req: Request) {
       ),
     );
     if (action === 'super-bowl-pick') {
+      const settings = await superBowlConfig(league);
       const team = str('team', 3).toUpperCase();
       if (!validTeams.has(team)) throw new Problem('Choose a valid NFL team.');
       const result = await db
         .prepare(
           `INSERT INTO super_bowl_picks(league,user,team) SELECT ?,?,? WHERE unixepoch('now')*1000<? AND EXISTS(SELECT 1 FROM members WHERE league=? AND user=?) ON CONFLICT(league,user) DO UPDATE SET team=excluded.team`,
         )
-        .bind(
-          league,
-          u.userId,
-          team,
-          SUPER_BOWL_PICK_DEADLINE,
-          league,
-          u.userId,
-        )
+        .bind(league, u.userId, team, settings.deadline, league, u.userId)
         .run();
       if (!result.meta.changes)
         throw new Problem(
-          'Super Bowl predictions locked at the start of Week 5.',
+          `Super Bowl predictions locked at the start of Week ${settings.lockWeek}.`,
           409,
         );
       return json({ ok: true });
     }
     if (action === 'super-bowl-unpick') {
+      const settings = await superBowlConfig(league);
       const result = await db
         .prepare(
           `DELETE FROM super_bowl_picks WHERE league=? AND user=? AND unixepoch('now')*1000<?`,
         )
-        .bind(league, u.userId, SUPER_BOWL_PICK_DEADLINE)
+        .bind(league, u.userId, settings.deadline)
         .run();
       if (!result.meta.changes)
         throw new Problem('The prediction is already clear or locked.', 409);
@@ -826,6 +852,23 @@ export async function POST(req: Request) {
             .bind(league, badge, enabled.has(badge) ? 1 : 0),
         ),
       ]);
+      return json({ ok: true });
+    }
+    if (action === 'super-bowl-settings') {
+      const lockWeek = Number(body.lockWeek);
+      const points = Number(body.points);
+      if (!Number.isInteger(lockWeek) || lockWeek < 2 || lockWeek > 18)
+        throw new Problem('Choose a lock week from Week 2 through Week 18.');
+      if (!Number.isInteger(points) || points < 0 || points > 100)
+        throw new Problem(
+          'Super Bowl points must be a whole number from 0 to 100.',
+        );
+      await db
+        .prepare(
+          'UPDATE leagues SET super_bowl_lock_week=?,super_bowl_points=? WHERE id=?',
+        )
+        .bind(lockWeek, points, league)
+        .run();
       return json({ ok: true });
     }
     if (action === 'rotate') {

@@ -1060,6 +1060,46 @@ button.outline,
   margin-top: 20px;
   border-top: 1px solid var(--border);
 }
+.season-settings-form {
+  display: grid;
+  gap: 15px;
+  padding-top: 24px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.season-settings-form > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+.season-settings-form small {
+  color: #6e7c76;
+  line-height: 1.4;
+}
+.season-settings-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.season-settings-fields label {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.season-settings-fields select,
+.season-settings-fields input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--foreground);
+  font: inherit;
+}
+.season-settings-form .primary {
+  justify-self: start;
+}
 .badge-settings-form > div:first-child,
 .badge-settings-list span {
   display: grid;
@@ -1349,6 +1389,10 @@ button.outline,
 [data-theme='dark'] .favorite-team-form select {
   background: #152425;
 }
+[data-theme='dark'] .season-settings-fields select,
+[data-theme='dark'] .season-settings-fields input {
+  background: #152425;
+}
 [data-theme='dark'] .message {
   background: #34351f;
 }
@@ -1367,6 +1411,9 @@ button {
   min-height: 90px;
 }
 @media (max-width: 760px) {
+  .season-settings-fields {
+    grid-template-columns: 1fr;
+  }
   .badge-legend-grid {
     grid-template-columns: 1fr;
   }

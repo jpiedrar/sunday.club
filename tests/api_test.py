@@ -29,6 +29,11 @@ assert request('POST','/api/club',{'action':'badge-settings','league':league,'ba
 configured=request('GET',f'/api/club?week=1&league={league}')[1]['badgeSettings']
 assert {badge for badge,enabled in configured.items() if enabled}==set(enabled_badges)
 assert state['superBowlDeadline']==1791504900000
+assert state['superBowlLockWeek']==5 and state['superBowlPoints']==0
+assert request('POST','/api/club',{'action':'super-bowl-settings','league':league,'lockWeek':2,'points':7})[0]==200
+configured=request('GET',f'/api/club?week=1&league={league}')[1]
+assert configured['superBowlLockWeek']==2 and configured['superBowlPoints']==7
+assert configured['superBowlDeadline']==min(game['kickoff'] for game in request('GET',f'/api/club?week=2&league={league}')[1]['games'])
 if not state['superBowlLocked']:
  assert request('POST','/api/club',{'action':'super-bowl-pick','league':league,'team':'KC'})[0]==200
  assert request('GET',f'/api/club?week=1&league={league}')[1]['superBowlPick']=='KC'

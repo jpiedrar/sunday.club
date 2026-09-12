@@ -175,6 +175,8 @@ type State = {
   scheduleOfficial: boolean;
   superBowlPick: string | null;
   superBowlWinner: string | null;
+  superBowlLockWeek: number;
+  superBowlPoints: number;
   superBowlDeadline: number;
   superBowlLocked: boolean;
   serverNow: number;
@@ -666,7 +668,9 @@ export default function PickApp() {
                         <span className="eyebrow">SEASON PREDICTION</span>
                         <h2>Who wins the Super Bowl?</h2>
                         <p>
-                          No points.
+                          {data.superBowlPoints
+                            ? `${data.superBowlPoints} season ${data.superBowlPoints === 1 ? 'point' : 'points'} for a correct prediction.`
+                            : 'No standings points.'}
                           {badgeEnabled('nostradamus') &&
                             ' Correct picks earn the NOSTRADAMUS badge.'}
                         </p>
@@ -1478,6 +1482,63 @@ export default function PickApp() {
                       'name',
                       league.name,
                     )}
+                    <form
+                      className="season-settings-form"
+                      key={`${league.id}-${data?.superBowlLockWeek}-${data?.superBowlPoints}`}
+                      onSubmit={async (event) => {
+                        event.preventDefault();
+                        const form = new FormData(event.currentTarget);
+                        await mutate(
+                          {
+                            action: 'super-bowl-settings',
+                            lockWeek: Number(form.get('lockWeek')),
+                            points: Number(form.get('points')),
+                          },
+                          'Super Bowl prediction settings updated.',
+                        );
+                      }}
+                    >
+                      <div>
+                        <strong>Super Bowl prediction</strong>
+                        <small>
+                          Picks lock when the first game of the selected week
+                          starts.
+                        </small>
+                      </div>
+                      <div className="season-settings-fields">
+                        <label>
+                          Lock week
+                          <select
+                            name="lockWeek"
+                            defaultValue={data?.superBowlLockWeek ?? 5}
+                          >
+                            {Array.from(
+                              { length: 17 },
+                              (_, index) => index + 2,
+                            ).map((value) => (
+                              <option key={value} value={value}>
+                                Week {value}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Points for correct winner
+                          <input
+                            type="number"
+                            name="points"
+                            min="0"
+                            max="100"
+                            step="1"
+                            defaultValue={data?.superBowlPoints ?? 0}
+                            required
+                          />
+                        </label>
+                      </div>
+                      <button className="primary" disabled={busy}>
+                        Save prediction settings
+                      </button>
+                    </form>
                     <form
                       className="badge-settings-form"
                       key={`${league.id}-${JSON.stringify(data?.badgeSettings)}`}

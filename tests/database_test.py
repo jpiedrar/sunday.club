@@ -27,7 +27,7 @@ class Rules(unittest.TestCase):
   for migration in sorted((root/'drizzle').glob('*.sql')):
    self.db.executescript(migration.read_text())
   self.db.executemany('INSERT INTO profiles(id,name) VALUES(?,?)',[('a','Alice'),('b','Bob'),('c','Chris')])
-  self.db.executemany('INSERT INTO leagues VALUES(?,?,?,?,?)',[('l','League','a','CODE',2026),('other','Other','c','OTHER',2026)])
+  self.db.executemany('INSERT INTO leagues(id,name,owner,code,season) VALUES(?,?,?,?,?)',[('l','League','a','CODE',2026),('other','Other','c','OTHER',2026)])
   self.db.executemany('INSERT INTO members(league,user) VALUES(?,?)',[('l','a'),('l','b'),('other','c')])
   self.now=int(time.time())*1000
   self.db.executemany('INSERT INTO games VALUES(?,?,?,?,?,?,?)',[('future',2,'KC','BUF',self.now+100000,'scheduled',None),('locked',2,'KC','BUF',self.now,'scheduled',None),('past',1,'KC','BUF',self.now-100000,'final','KC')])
@@ -76,6 +76,12 @@ class Rules(unittest.TestCase):
   self.db.execute("INSERT INTO picks VALUES('l','a','past','KC')")
   row=self.db.execute(score_sql,(2,1,4,'l')).fetchone()
   self.assertEqual(row['weekly'],0);self.assertEqual(row['monthly'],1);self.assertEqual(row['season'],1)
+ def test_super_bowl_settings_defaults_and_update(self):
+  settings=self.db.execute("SELECT super_bowl_lock_week,super_bowl_points FROM leagues WHERE id='l'").fetchone()
+  self.assertEqual(tuple(settings),(5,0))
+  self.db.execute("UPDATE leagues SET super_bowl_lock_week=2,super_bowl_points=7 WHERE id='l'")
+  settings=self.db.execute("SELECT super_bowl_lock_week,super_bowl_points FROM leagues WHERE id='l'").fetchone()
+  self.assertEqual(tuple(settings),(2,7))
  def test_picks_reveal_at_kickoff_or_partial_snapshot(self):
   self.db.executemany('INSERT INTO picks VALUES(?,?,?,?)',[('l','a','past','KC'),('l','a','future','BUF')])
   automatic=[r['game'] for r in self.db.execute(reveal_sql,('l',1,self.now,'l',1,self.now)).fetchall()]

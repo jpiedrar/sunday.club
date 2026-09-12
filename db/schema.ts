@@ -18,6 +18,8 @@ export const leagues = sqliteTable('leagues', {
     .references(() => profiles.id),
   code: text('code').notNull().unique(),
   season: integer('season').notNull().default(2026),
+  superBowlLockWeek: integer('super_bowl_lock_week').notNull().default(5),
+  superBowlPoints: integer('super_bowl_points').notNull().default(0),
 });
 export const leagueBadgeSettings = sqliteTable(
   'league_badge_settings',
