@@ -531,6 +531,31 @@ export default function PickApp() {
     0,
     ...leaderboard.map((standing) => periodCount(standing, 'guts')),
   );
+  const visibleBadgeKeys = new Set<BadgeKey>();
+  if (badgeEnabled('vende-patrias') && againstLeaderCount > 0)
+    visibleBadgeKeys.add('vende-patrias');
+  if (badgeEnabled('wild-picker') && wildLeaderCount > 0)
+    visibleBadgeKeys.add('wild-picker');
+  if (badgeEnabled('titanic-musician') && favoriteLossLeaderCount > 0)
+    visibleBadgeKeys.add('titanic-musician');
+  if (badgeEnabled('mama-pichas') && missedPickLeaderCount > 0)
+    visibleBadgeKeys.add('mama-pichas');
+  if (
+    badgeEnabled('nostradamus') &&
+    leaderboard.some((standing) => standing.nostradamus)
+  )
+    visibleBadgeKeys.add('nostradamus');
+  if (
+    badgeEnabled('perfect-week') &&
+    leaderboard.some((standing) => periodCount(standing, 'perfect-week') > 0)
+  )
+    visibleBadgeKeys.add('perfect-week');
+  if (badgeEnabled('lone-wolf') && loneWolfLeaderCount > 0)
+    visibleBadgeKeys.add('lone-wolf');
+  if (badgeEnabled('upset-king') && upsetKingLeaderCount > 0)
+    visibleBadgeKeys.add('upset-king');
+  if (badgeEnabled('no-guts-no-glory') && gutsLeaderCount > 0)
+    visibleBadgeKeys.add('no-guts-no-glory');
   const month = Math.ceil(week / 4);
   function smallForm(
     action: string,
@@ -1121,7 +1146,7 @@ export default function PickApp() {
                           </button>
                         </div>
                       )}
-                      {badgeOptions.some(({ key }) => badgeEnabled(key)) && (
+                      {visibleBadgeKeys.size > 0 && (
                         <section
                           className="badge-legend"
                           aria-labelledby="badge-legend-title"
@@ -1135,7 +1160,7 @@ export default function PickApp() {
                           </div>
                           <div className="badge-legend-grid">
                             {badgeOptions
-                              .filter(({ key }) => badgeEnabled(key))
+                              .filter(({ key }) => visibleBadgeKeys.has(key))
                               .map((badge) => {
                                 const BadgeIcon = badgeIcons[badge.key];
                                 return (
