@@ -23,6 +23,16 @@ const badgeKeys = [
   'upset-king',
   'no-guts-no-glory',
 ] as const;
+const outrightDivisions: Record<string, readonly string[]> = {
+  afc_east: ['BUF', 'MIA', 'NE', 'NYJ'],
+  afc_north: ['BAL', 'CIN', 'CLE', 'PIT'],
+  afc_south: ['HOU', 'IND', 'JAX', 'TEN'],
+  afc_west: ['DEN', 'KC', 'LV', 'LAC'],
+  nfc_east: ['DAL', 'NYG', 'PHI', 'WAS'],
+  nfc_north: ['CHI', 'DET', 'GB', 'MIN'],
+  nfc_south: ['ATL', 'CAR', 'NO', 'TB'],
+  nfc_west: ['ARI', 'LAR', 'SF', 'SEA'],
+};
 async function superBowlConfig(league: string) {
   const db = database();
   const settings = await db
@@ -139,6 +149,7 @@ export async function GET(req: Request) {
         standings: [],
         members: [],
         superBowlPick: null,
+        outrightPicks: {},
         superBowlWinner: await syncSuperBowlWinner(db),
         superBowlLockWeek: 5,
         superBowlPoints: 0,
@@ -178,6 +189,14 @@ export async function GET(req: Request) {
         .prepare('SELECT user,team FROM super_bowl_picks WHERE league=?')
         .bind(league)
         .all<{ user: string; team: string }>()
+    ).results;
+    const outrightPicks = (
+      await db
+        .prepare(
+          'SELECT category,team FROM outright_picks WHERE league=? AND user=?',
+        )
+        .bind(league, u.userId)
+        .all<{ category: string; team: string }>()
     ).results;
     const selectedLeague = leagues.find((item) => item.id === league);
     let games = (
@@ -578,6 +597,12 @@ export async function GET(req: Request) {
       standings: standingsWithBadges,
       members,
       superBowlPick: superBowlPick?.team ?? null,
+      outrightPicks: Object.fromEntries(
+        outrightPicks.map((prediction) => [
+          prediction.category,
+          prediction.team,
+        ]),
+      ),
       superBowlWinner,
       superBowlLockWeek: superBowlSettings.lockWeek,
       superBowlPoints: superBowlSettings.points,
@@ -672,9 +697,14 @@ export async function POST(req: Request) {
     await membership(
       league,
       u.userId,
-      !['pick', 'unpick', 'super-bowl-pick', 'super-bowl-unpick'].includes(
-        String(action),
-      ),
+      ![
+        'pick',
+        'unpick',
+        'super-bowl-pick',
+        'super-bowl-unpick',
+        'outright-pick',
+        'outright-unpick',
+      ].includes(String(action)),
     );
     if (action === 'super-bowl-pick') {
       const settings = await superBowlConfig(league);
@@ -700,6 +730,48 @@ export async function POST(req: Request) {
           `DELETE FROM super_bowl_picks WHERE league=? AND user=? AND unixepoch('now')*1000<?`,
         )
         .bind(league, u.userId, settings.deadline)
+        .run();
+      if (!result.meta.changes)
+        throw new Problem('The prediction is already clear or locked.', 409);
+      return json({ ok: true });
+    }
+    if (action === 'outright-pick') {
+      const settings = await superBowlConfig(league);
+      const category = str('category', 20).toLowerCase();
+      const team = str('team', 3).toUpperCase();
+      if (!outrightDivisions[category]?.includes(team))
+        throw new Problem('Choose a valid team for that division.');
+      const result = await db
+        .prepare(
+          `INSERT INTO outright_picks(league,user,category,team) SELECT ?,?,?,? WHERE unixepoch('now')*1000<? AND EXISTS(SELECT 1 FROM members WHERE league=? AND user=?) ON CONFLICT(league,user,category) DO UPDATE SET team=excluded.team`,
+        )
+        .bind(
+          league,
+          u.userId,
+          category,
+          team,
+          settings.deadline,
+          league,
+          u.userId,
+        )
+        .run();
+      if (!result.meta.changes)
+        throw new Problem(
+          `Outright predictions locked at the start of Week ${settings.lockWeek}.`,
+          409,
+        );
+      return json({ ok: true });
+    }
+    if (action === 'outright-unpick') {
+      const settings = await superBowlConfig(league);
+      const category = str('category', 20).toLowerCase();
+      if (!(category in outrightDivisions))
+        throw new Problem('Choose a valid division.');
+      const result = await db
+        .prepare(
+          "DELETE FROM outright_picks WHERE league=? AND user=? AND category=? AND unixepoch('now')*1000<?",
+        )
+        .bind(league, u.userId, category, settings.deadline)
         .run();
       if (!result.meta.changes)
         throw new Problem('The prediction is already clear or locked.', 409);
@@ -894,6 +966,9 @@ export async function POST(req: Request) {
           .bind(league, member),
         db
           .prepare('DELETE FROM super_bowl_picks WHERE league=? AND user=?')
+          .bind(league, member),
+        db
+          .prepare('DELETE FROM outright_picks WHERE league=? AND user=?')
           .bind(league, member),
         db
           .prepare('DELETE FROM members WHERE league=? AND user=?')

@@ -24,6 +24,11 @@ league=result['league']
 assert request('GET','/api/club?league=not-a-member')[0]==403
 status,state=request('GET',f'/api/club?week=1&league={league}');assert status==200,state
 assert all(state['badgeSettings'].values())
+assert state['outrightPicks']=={}
+assert request('POST','/api/club',{'action':'outright-pick','league':league,'category':'nfc_west','team':'SF'})[0]==200
+assert request('GET',f'/api/club?week=1&league={league}')[1]['outrightPicks']['nfc_west']=='SF'
+assert request('POST','/api/club',{'action':'outright-unpick','league':league,'category':'nfc_west'})[0]==200
+assert request('POST','/api/club',{'action':'outright-pick','league':league,'category':'nfc_west','team':'KC'})[0]==400
 enabled_badges=['perfect-week','lone-wolf']
 assert request('POST','/api/club',{'action':'badge-settings','league':league,'badges':enabled_badges})[0]==200
 configured=request('GET',f'/api/club?week=1&league={league}')[1]['badgeSettings']
@@ -87,4 +92,4 @@ status,offset_state=request('GET',f'/api/club?week=2&league={league}');assert st
 assert offset_game['id'] in offset_state['offsetPicks'][offset_state['profile']['id']]
 assert offset_state['publishedPicks'][offset_state['profile']['id']][offset_game['id']]==offset_game['home']
 assert request('POST','/api/club',{'action':'remove','league':league,'member':state['profile']['id']})[0]==400
-print('PASS: official schedule and results, market probabilities, badge configuration, pick publication, authentication, standings and commissioner protection.')
+print('PASS: official schedule and results, market probabilities, outright picks, badge configuration, pick publication, authentication, standings and commissioner protection.')

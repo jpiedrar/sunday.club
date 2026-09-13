@@ -238,6 +238,7 @@ type State = {
   standings: Standing[];
   scheduleOfficial: boolean;
   superBowlPick: string | null;
+  outrightPicks: Record<string, string>;
   superBowlWinner: string | null;
   superBowlLockWeek: number;
   superBowlPoints: number;
@@ -250,10 +251,21 @@ const teamChoices = [...teams].sort((a, b) =>
 );
 const nav = [
   ['picks', 'Picks', Zap],
+  ['outrights', 'Outrights', Crown],
   ['standings', 'Standings', Trophy],
   ['league-picks', 'League Picks', Eye],
   ['leagues', 'Leagues', Users],
   ['account', 'Account', CircleUserRound],
+] as const;
+const divisions = [
+  { id: 'afc_east', name: 'AFC East', teams: ['BUF', 'MIA', 'NE', 'NYJ'] },
+  { id: 'afc_north', name: 'AFC North', teams: ['BAL', 'CIN', 'CLE', 'PIT'] },
+  { id: 'afc_south', name: 'AFC South', teams: ['HOU', 'IND', 'JAX', 'TEN'] },
+  { id: 'afc_west', name: 'AFC West', teams: ['DEN', 'KC', 'LV', 'LAC'] },
+  { id: 'nfc_east', name: 'NFC East', teams: ['DAL', 'NYG', 'PHI', 'WAS'] },
+  { id: 'nfc_north', name: 'NFC North', teams: ['CHI', 'DET', 'GB', 'MIN'] },
+  { id: 'nfc_south', name: 'NFC South', teams: ['ATL', 'CAR', 'NO', 'TB'] },
+  { id: 'nfc_west', name: 'NFC West', teams: ['ARI', 'LAR', 'SF', 'SEA'] },
 ] as const;
 export default function PickApp() {
   const [view, setView] = useState('picks');
@@ -660,24 +672,28 @@ export default function PickApp() {
             <h1>
               {view === 'picks'
                 ? 'Make your picks.'
-                : view === 'standings'
-                  ? 'The bragging board.'
-                  : view === 'league-picks'
-                    ? 'See every call.'
-                    : view === 'leagues'
-                      ? 'Find your crew.'
-                      : 'Your corner.'}
+                : view === 'outrights'
+                  ? 'Call the champions.'
+                  : view === 'standings'
+                    ? 'The bragging board.'
+                    : view === 'league-picks'
+                      ? 'See every call.'
+                      : view === 'leagues'
+                        ? 'Find your crew.'
+                        : 'Your corner.'}
             </h1>
             <p>
               {view === 'picks'
                 ? 'A little football. A lot of bragging rights.'
-                : view === 'standings'
-                  ? 'One correct winner. One step up the table.'
-                  : view === 'league-picks'
-                    ? 'Picks unlock game by game at kickoff.'
-                    : view === 'leagues'
-                      ? 'Private leagues. Friendly rivalries.'
-                      : 'Make yourself at home.'}
+                : view === 'outrights'
+                  ? 'Choose every division winner and your Super Bowl champion.'
+                  : view === 'standings'
+                    ? 'One correct winner. One step up the table.'
+                    : view === 'league-picks'
+                      ? 'Picks unlock game by game at kickoff.'
+                      : view === 'leagues'
+                        ? 'Private leagues. Friendly rivalries.'
+                        : 'Make yourself at home.'}
             </p>
           </div>
           <button
@@ -726,102 +742,170 @@ export default function PickApp() {
             </a>
           </div>
         )}
-        {view === 'picks' || view === 'standings' || view === 'league-picks' ? (
+        {view === 'picks' ||
+        view === 'outrights' ||
+        view === 'standings' ||
+        view === 'league-picks' ? (
           <div className="layout">
             <section aria-busy={loading}>
-              <div className="weekbar">
-                <button
-                  aria-label="Previous week"
-                  disabled={week === 1 || busy}
-                  onClick={() => setWeek((w) => w - 1)}
-                >
-                  <ChevronLeft />
-                </button>
-                <div>
-                  <b>Week {week}</b>
-                  <span>REGULAR SEASON · 2026</span>
+              {view !== 'outrights' && (
+                <div className="weekbar">
+                  <button
+                    aria-label="Previous week"
+                    disabled={week === 1 || busy}
+                    onClick={() => setWeek((w) => w - 1)}
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <div>
+                    <b>Week {week}</b>
+                    <span>REGULAR SEASON · 2026</span>
+                  </div>
+                  <button
+                    aria-label="Next week"
+                    disabled={week === 18 || busy}
+                    onClick={() => setWeek((w) => w + 1)}
+                  >
+                    <ChevronRight />
+                  </button>
                 </div>
-                <button
-                  aria-label="Next week"
-                  disabled={week === 18 || busy}
-                  onClick={() => setWeek((w) => w + 1)}
-                >
-                  <ChevronRight />
-                </button>
-              </div>
-              {view === 'picks' ? (
-                <>
-                  {data && (
-                    <section className="super-bowl-card">
-                      <div className="super-bowl-copy">
-                        <span className="eyebrow">SEASON PREDICTION</span>
-                        <h2>Who wins the Super Bowl?</h2>
-                        <p>
-                          A correct prediction wins {data.superBowlPoints}{' '}
-                          season{' '}
-                          {data.superBowlPoints === 1 ? 'point' : 'points'}.
-                          {badgeEnabled('nostradamus') &&
-                            ' Correct picks earn the NOSTRADAMUS badge.'}
-                        </p>
+              )}
+              {view === 'outrights' ? (
+                <div className="outrights-page">
+                  <section className="outrights-intro">
+                    <div>
+                      <span className="eyebrow">SEASON OUTRIGHTS</span>
+                      <h2>Pick the winners.</h2>
+                      <p>
+                        All selections lock when Week{' '}
+                        {data?.superBowlLockWeek ?? 5} begins.
+                      </p>
+                    </div>
+                    <span
+                      className={`outrights-status${data?.superBowlLocked ? ' locked' : ''}`}
+                    >
+                      {data?.superBowlLocked ? <LockKeyhole size={14} /> : null}
+                      {data?.superBowlLocked
+                        ? 'Locked'
+                        : `Open through Week ${data?.superBowlLockWeek ?? 5}`}
+                    </span>
+                  </section>
+                  <section className="outright-card super-bowl-outright">
+                    <div className="outright-heading">
+                      <div>
+                        <span className="eyebrow">SUPER BOWL</span>
+                        <h2>League champion</h2>
                       </div>
-                      <form
-                        key={`${data.league}-${data.superBowlPick ?? 'empty'}`}
-                        onSubmit={async (event) => {
-                          event.preventDefault();
-                          const selected = new FormData(
-                            event.currentTarget,
-                          ).get('team');
-                          await mutate(
-                            { action: 'super-bowl-pick', team: selected },
-                            'Super Bowl prediction saved.',
-                          );
-                        }}
-                      >
-                        <select
-                          name="team"
-                          aria-label="Super Bowl winner prediction"
-                          required
-                          defaultValue={data.superBowlPick ?? ''}
-                          disabled={data.superBowlLocked || busy || !league}
-                        >
-                          <option value="" disabled>
-                            Choose the champion
-                          </option>
-                          {teamChoices.map((entry) => (
-                            <option key={entry[0]} value={entry[0]}>
-                              {entry[1]} {entry[2]}
-                            </option>
-                          ))}
-                        </select>
-                        {!data.superBowlLocked && league && (
-                          <button className="primary" disabled={busy}>
-                            Save
-                          </button>
-                        )}
-                        {!data.superBowlLocked && data.superBowlPick && (
+                      <p>
+                        A correct prediction wins {data?.superBowlPoints ?? 0}{' '}
+                        season{' '}
+                        {(data?.superBowlPoints ?? 0) === 1
+                          ? 'point'
+                          : 'points'}
+                        .
+                        {badgeEnabled('nostradamus') &&
+                          ' It also earns NOSTRADAMUS.'}
+                      </p>
+                    </div>
+                    <div className="logo-choice-grid all-teams">
+                      {teamChoices.map((entry) => {
+                        const selected = data?.superBowlPick === entry[0];
+                        return (
                           <button
-                            type="button"
-                            className="text-button"
-                            disabled={busy}
+                            key={entry[0]}
+                            className={
+                              selected ? 'logo-choice selected' : 'logo-choice'
+                            }
+                            disabled={busy || data?.superBowlLocked || !league}
+                            aria-label={`${entry[2]}${selected ? ', selected' : ''}`}
                             onClick={() =>
                               void mutate(
-                                { action: 'super-bowl-unpick' },
-                                'Super Bowl prediction removed.',
+                                selected
+                                  ? { action: 'super-bowl-unpick' }
+                                  : {
+                                      action: 'super-bowl-pick',
+                                      team: entry[0],
+                                    },
+                                selected
+                                  ? 'Super Bowl prediction removed.'
+                                  : `${entry[2]} selected as Super Bowl winner.`,
                               )
                             }
                           >
-                            Clear
+                            <img
+                              src={`/team-logos/${entry[0]}.png`}
+                              alt=""
+                              width="42"
+                              height="42"
+                            />
+                            <span>{entry[0]}</span>
+                            {selected && <Check size={14} />}
                           </button>
-                        )}
-                      </form>
-                      <div className="super-bowl-deadline">
-                        {data.superBowlLocked && <LockKeyhole size={13} />}
-                        {data.superBowlLocked
-                          ? `Predictions locked · Deadline was Week ${data.superBowlLockWeek}`
-                          : `Deadline: Week ${data.superBowlLockWeek}`}
-                      </div>
-                    </section>
-                  )}
+                        );
+                      })}
+                    </div>
+                  </section>
+                  <div className="division-grid">
+                    {divisions.map((division) => (
+                      <section className="outright-card" key={division.id}>
+                        <div className="outright-heading">
+                          <span className="eyebrow">
+                            {division.name.startsWith('AFC') ? 'AFC' : 'NFC'}
+                          </span>
+                          <h2>{division.name}</h2>
+                        </div>
+                        <div className="logo-choice-grid">
+                          {division.teams.map((teamId) => {
+                            const selected =
+                              data?.outrightPicks[division.id] === teamId;
+                            return (
+                              <button
+                                key={teamId}
+                                className={
+                                  selected
+                                    ? 'logo-choice selected'
+                                    : 'logo-choice'
+                                }
+                                disabled={
+                                  busy || data?.superBowlLocked || !league
+                                }
+                                aria-label={`${team(teamId)[2]}${selected ? ', selected' : ''}`}
+                                onClick={() =>
+                                  void mutate(
+                                    selected
+                                      ? {
+                                          action: 'outright-unpick',
+                                          category: division.id,
+                                        }
+                                      : {
+                                          action: 'outright-pick',
+                                          category: division.id,
+                                          team: teamId,
+                                        },
+                                    selected
+                                      ? `${division.name} prediction removed.`
+                                      : `${team(teamId)[2]} selected for ${division.name}.`,
+                                  )
+                                }
+                              >
+                                <img
+                                  src={`/team-logos/${teamId}.png`}
+                                  alt=""
+                                  width="48"
+                                  height="48"
+                                />
+                                <span>{teamId}</span>
+                                {selected && <Check size={14} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                </div>
+              ) : view === 'picks' ? (
+                <>
                   {data && !data.profile.favoriteTeam && (
                     <div className="favorite-required">
                       <div>
@@ -1573,10 +1657,10 @@ export default function PickApp() {
                       }}
                     >
                       <div>
-                        <strong>Super Bowl prediction</strong>
+                        <strong>Outrights predictions</strong>
                         <small>
-                          Picks lock when the first game of the selected week
-                          starts.
+                          Division and Super Bowl picks lock when the first game
+                          of the selected week starts.
                         </small>
                       </div>
                       <div className="season-settings-fields">

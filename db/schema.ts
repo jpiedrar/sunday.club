@@ -116,6 +116,20 @@ export const superBowlPicks = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.league, t.user] })],
 );
+export const outrightPicks = sqliteTable(
+  'outright_picks',
+  {
+    league: text('league')
+      .notNull()
+      .references(() => leagues.id),
+    user: text('user')
+      .notNull()
+      .references(() => profiles.id),
+    category: text('category').notNull(),
+    team: text('team').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.league, t.user, t.category] })],
+);
 export const results = sqliteTable(
   'results',
   {

@@ -82,6 +82,10 @@ class Rules(unittest.TestCase):
   self.db.execute("UPDATE leagues SET super_bowl_lock_week=2,super_bowl_points=7 WHERE id='l'")
   settings=self.db.execute("SELECT super_bowl_lock_week,super_bowl_points FROM leagues WHERE id='l'").fetchone()
   self.assertEqual(tuple(settings),(2,7))
+ def test_outright_pick_replaces_division_selection(self):
+  self.db.execute("INSERT INTO outright_picks VALUES('l','a','afc_west','KC')")
+  self.db.execute("INSERT INTO outright_picks VALUES('l','a','afc_west','DEN') ON CONFLICT(league,user,category) DO UPDATE SET team=excluded.team")
+  self.assertEqual(self.db.execute("SELECT team FROM outright_picks").fetchone()['team'],'DEN')
  def test_picks_reveal_at_kickoff_or_partial_snapshot(self):
   self.db.executemany('INSERT INTO picks VALUES(?,?,?,?)',[('l','a','past','KC'),('l','a','future','BUF')])
   automatic=[r['game'] for r in self.db.execute(reveal_sql,('l',1,self.now,'l',1,self.now)).fetchall()]

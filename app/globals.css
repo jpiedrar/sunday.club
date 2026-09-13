@@ -259,6 +259,121 @@ button.outline,
   color: #776b36;
   font-size: 11px;
 }
+.outrights-page {
+  display: grid;
+  gap: 14px;
+}
+.outrights-intro,
+.outright-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+}
+.outrights-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+}
+.outrights-intro h2,
+.outright-heading h2 {
+  margin: 4px 0 0;
+  font-size: 19px;
+}
+.outrights-intro p,
+.outright-heading p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+.outrights-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: #e5f1e9;
+  color: #24654f;
+  font-size: 11px;
+  font-weight: 700;
+}
+.outrights-status.locked {
+  background: #eee9e4;
+  color: #765c50;
+}
+.outright-card {
+  padding: 16px;
+}
+.super-bowl-outright {
+  border-color: #d8c46e;
+  background: linear-gradient(135deg, #fffbea, #f4f0d2);
+}
+.outright-heading {
+  margin-bottom: 13px;
+}
+.super-bowl-outright .outright-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 18px;
+}
+.super-bowl-outright .outright-heading p {
+  max-width: 310px;
+  text-align: right;
+}
+.division-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.logo-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+.logo-choice-grid.all-teams {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+.logo-choice {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 8px 4px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #60716b;
+  font-size: 10px;
+  font-weight: 800;
+}
+.logo-choice img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+.logo-choice:hover:not(:disabled) {
+  border-color: #63a48e;
+  background: #f0f7f3;
+}
+.logo-choice.selected {
+  border-color: #168268;
+  background: #e5f4eb;
+  color: #165e4c;
+  box-shadow: inset 0 0 0 1px #168268;
+}
+.logo-choice > svg {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 2px;
+  border-radius: 50%;
+  background: #168268;
+  color: white;
+}
 .pick-progress > div:first-child {
   margin-bottom: 12px;
   font-size: 14px;
@@ -1361,6 +1476,20 @@ button.outline,
   background: linear-gradient(135deg, #2e2b1d, #25281e);
   border-color: #6f6330;
 }
+[data-theme='dark'] .outrights-intro,
+[data-theme='dark'] .outright-card {
+  background: #152124;
+}
+[data-theme='dark'] .super-bowl-outright {
+  background: linear-gradient(135deg, #2e2b1d, #25281e);
+  border-color: #6f6330;
+}
+[data-theme='dark'] .logo-choice {
+  background: #1b292b;
+}
+[data-theme='dark'] .logo-choice.selected {
+  background: #183b31;
+}
 [data-theme='dark'] .super-bowl-card select {
   background: #152425;
   border-color: #596247;
@@ -1411,6 +1540,20 @@ button {
   min-height: 90px;
 }
 @media (max-width: 760px) {
+  .division-grid {
+    grid-template-columns: 1fr;
+  }
+  .logo-choice-grid.all-teams {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .outrights-intro,
+  .super-bowl-outright .outright-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .super-bowl-outright .outright-heading p {
+    text-align: left;
+  }
   .season-settings-fields {
     grid-template-columns: 1fr;
   }
@@ -1457,8 +1600,9 @@ button {
     margin-top: 5px;
   }
   .bottom button {
-    min-width: 60px;
+    min-width: 0;
     min-height: 48px;
+    flex: 1 1 0;
   }
   .team-name small {
     font-size: 12px;
@@ -1490,7 +1634,7 @@ button {
     font-size: 12px;
   }
   .bottom button {
-    font-size: 12px;
+    font-size: 9px;
   }
   .pill {
     font-size: 12px;
