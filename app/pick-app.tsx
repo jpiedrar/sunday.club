@@ -31,6 +31,8 @@ import {
   PawPrint,
   Crown,
   Swords,
+  CircleCheck,
+  CircleX,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -1399,20 +1401,35 @@ export default function PickApp() {
                                             game.id,
                                           ),
                                         );
+                                        const isFinalWithWinner =
+                                          game.status === 'final' &&
+                                          Boolean(game.winner);
+                                        const isCorrect =
+                                          isFinalWithWinner &&
+                                          selected === game.winner;
+                                        const isIncorrect =
+                                          isFinalWithWinner &&
+                                          selected !== game.winner;
                                         return (
                                           <TableCell key={member.id}>
                                             <span
                                               className={
                                                 selected
-                                                  ? `published-team${isOffset ? ' offset-pick' : isWildPick ? ' wild-pick' : ''}`
-                                                  : 'missing-pick'
+                                                  ? `published-team${isOffset ? ' offset-pick' : isWildPick ? ' wild-pick' : ''}${isCorrect ? ' correct-pick' : isIncorrect ? ' incorrect-pick' : ''}`
+                                                  : `missing-pick${isIncorrect ? ' incorrect-pick' : ''}`
                                               }
                                               title={
-                                                isOffset
-                                                  ? 'Upset · changed after publication and currently the league’s only pick for this team'
-                                                  : isWildPick
-                                                    ? 'Wild pick · selected by 20% or less of the league'
-                                                    : undefined
+                                                isCorrect
+                                                  ? 'Correct pick'
+                                                  : isIncorrect
+                                                    ? selected
+                                                      ? 'Incorrect pick'
+                                                      : 'No pick submitted'
+                                                    : isOffset
+                                                      ? 'Upset · changed after publication and currently the league’s only pick for this team'
+                                                      : isWildPick
+                                                        ? 'Wild pick · selected by 20% or less of the league'
+                                                        : undefined
                                               }
                                             >
                                               {selected ??
@@ -1427,6 +1444,24 @@ export default function PickApp() {
                                                     ? 'UPSET'
                                                     : 'WILD PICK'}
                                                 </small>
+                                              )}
+                                              {isCorrect && (
+                                                <CircleCheck
+                                                  className="pick-result-icon"
+                                                  size={13}
+                                                  aria-label="Correct pick"
+                                                />
+                                              )}
+                                              {isIncorrect && (
+                                                <CircleX
+                                                  className="pick-result-icon"
+                                                  size={13}
+                                                  aria-label={
+                                                    selected
+                                                      ? 'Incorrect pick'
+                                                      : 'No pick submitted'
+                                                  }
+                                                />
                                               )}
                                             </span>
                                           </TableCell>
@@ -1449,9 +1484,11 @@ export default function PickApp() {
                             </Table>
                           </div>
                           <p className="wild-pick-note">
-                            WILD marks a team selected by 20% or less of the
-                            league for that matchup. UPSET marks a unique pick
-                            changed after that matchup became public.
+                            Completed games show correct picks in green and
+                            incorrect or missing picks in red. WILD marks a team
+                            selected by 20% or less of the league for that
+                            matchup. UPSET marks a unique pick changed after
+                            that matchup became public.
                           </p>
                         </>
                       ) : (
