@@ -1,4 +1,5 @@
 'use client';
+import { currentNflWeek } from '../lib/current-week';
 /* eslint-disable next/no-html-link-for-pages -- Sites sign-in and sign-out require full top-level navigation. */
 import {
   useCallback,
@@ -269,9 +270,10 @@ const divisions = [
   { id: 'nfc_south', name: 'NFC South', teams: ['ATL', 'CAR', 'NO', 'TB'] },
   { id: 'nfc_west', name: 'NFC West', teams: ['ARI', 'LAR', 'SF', 'SEA'] },
 ] as const;
-export default function PickApp() {
+export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const [view, setView] = useState('picks');
-  const [week, setWeek] = useState(1);
+  const [week, setWeek] = useState(initialWeek);
+  const previousCurrentWeek = useRef(initialWeek);
   const [leagueId, setLeagueId] = useState('');
   const [data, setData] = useState<State | null>(null);
   const [loading, setLoading] = useState(true);
@@ -286,6 +288,15 @@ export default function PickApp() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const offset = useRef(0);
   const requestId = useRef(0);
+  useEffect(() => {
+    if (!now) return;
+    const current = currentNflWeek(now);
+    const previous = previousCurrentWeek.current;
+    if (current !== previous) {
+      setWeek((selected) => (selected === previous ? current : selected));
+      previousCurrentWeek.current = current;
+    }
+  }, [now]);
   const load = useCallback(async () => {
     const id = ++requestId.current;
     setLoading(true);
