@@ -281,7 +281,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [signedOut, setSignedOut] = useState(false);
-  const [period, setPeriod] = useState('weekly');
+  const [period, setPeriod] = useState('monthly');
   const [now, setNow] = useState(0);
   const [remove, setRemove] = useState<Member | null>(null);
   const [installed, setInstalled] = useState(false);
@@ -581,6 +581,28 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     visibleBadgeKeys.add('upset-king');
   if (badgeEnabled('no-guts-no-glory') && gutsLeaderCount > 0)
     visibleBadgeKeys.add('no-guts-no-glory');
+  // A badge distinguishes members only when some, rather than all, earn it.
+  const earnsBadge = (standing: Standing, badge: BadgeKey) => {
+    if (badge === 'nostradamus') return standing.nostradamus;
+    if (badge === 'perfect-week')
+      return periodCount(standing, 'perfect-week') > 0;
+    const criteria = {
+      'vende-patrias': ['against', againstLeaderCount],
+      'wild-picker': ['wild', wildLeaderCount],
+      'titanic-musician': ['favorite-loss', favoriteLossLeaderCount],
+      'mama-pichas': ['missed', missedPickLeaderCount],
+      'lone-wolf': ['lone-wolf', loneWolfLeaderCount],
+      'upset-king': ['upset-king', upsetKingLeaderCount],
+      'no-guts-no-glory': ['guts', gutsLeaderCount],
+    } as const;
+    const [kind, leaderCount] = criteria[badge];
+    return leaderCount > 0 && periodCount(standing, kind) === leaderCount;
+  };
+  for (const badge of visibleBadgeKeys) {
+    if (leaderboard.every((standing) => earnsBadge(standing, badge))) {
+      visibleBadgeKeys.delete(badge);
+    }
+  }
   const month = Math.ceil(week / 4);
   function smallForm(
     action: string,
@@ -1090,10 +1112,10 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                         onValueChange={(v) => setPeriod(String(v))}
                       >
                         <TabsList className="period-tabs">
-                          <TabsTrigger value="weekly">Week {week}</TabsTrigger>
                           <TabsTrigger value="monthly">
                             Month {month}
                           </TabsTrigger>
+                          <TabsTrigger value="weekly">Week {week}</TabsTrigger>
                           <TabsTrigger value="season">Full season</TabsTrigger>
                         </TabsList>
                       </Tabs>
@@ -1159,21 +1181,23 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                       {p.id === data?.profile.id && (
                                         <span className="you-tag">YOU</span>
                                       )}
-                                      {badgeEnabled('vende-patrias') &&
+                                      {visibleBadgeKeys.has('vende-patrias') &&
                                         againstLeaderCount > 0 &&
                                         againstCount === againstLeaderCount &&
                                         standingsBadge(
                                           'vende-patrias',
                                           againstCount,
                                         )}
-                                      {badgeEnabled('wild-picker') &&
+                                      {visibleBadgeKeys.has('wild-picker') &&
                                         wildLeaderCount > 0 &&
                                         wildCount === wildLeaderCount &&
                                         standingsBadge(
                                           'wild-picker',
                                           wildCount,
                                         )}
-                                      {badgeEnabled('titanic-musician') &&
+                                      {visibleBadgeKeys.has(
+                                        'titanic-musician',
+                                      ) &&
                                         favoriteLossLeaderCount > 0 &&
                                         favoriteLossCount ===
                                           favoriteLossLeaderCount &&
@@ -1181,7 +1205,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                           'titanic-musician',
                                           favoriteLossCount,
                                         )}
-                                      {badgeEnabled('mama-pichas') &&
+                                      {visibleBadgeKeys.has('mama-pichas') &&
                                         missedPickLeaderCount > 0 &&
                                         missedPickCount ===
                                           missedPickLeaderCount &&
@@ -1189,23 +1213,23 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                           'mama-pichas',
                                           missedPickCount,
                                         )}
-                                      {badgeEnabled('nostradamus') &&
+                                      {visibleBadgeKeys.has('nostradamus') &&
                                         p.nostradamus &&
                                         standingsBadge('nostradamus')}
-                                      {badgeEnabled('perfect-week') &&
+                                      {visibleBadgeKeys.has('perfect-week') &&
                                         perfectWeekCount > 0 &&
                                         standingsBadge(
                                           'perfect-week',
                                           perfectWeekCount,
                                         )}
-                                      {badgeEnabled('lone-wolf') &&
+                                      {visibleBadgeKeys.has('lone-wolf') &&
                                         loneWolfLeaderCount > 0 &&
                                         loneWolfCount === loneWolfLeaderCount &&
                                         standingsBadge(
                                           'lone-wolf',
                                           loneWolfCount,
                                         )}
-                                      {badgeEnabled('upset-king') &&
+                                      {visibleBadgeKeys.has('upset-king') &&
                                         upsetKingLeaderCount > 0 &&
                                         upsetKingCount ===
                                           upsetKingLeaderCount &&
@@ -1213,7 +1237,9 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                           'upset-king',
                                           upsetKingCount,
                                         )}
-                                      {badgeEnabled('no-guts-no-glory') &&
+                                      {visibleBadgeKeys.has(
+                                        'no-guts-no-glory',
+                                      ) &&
                                         gutsLeaderCount > 0 &&
                                         gutsCount === gutsLeaderCount &&
                                         standingsBadge(
