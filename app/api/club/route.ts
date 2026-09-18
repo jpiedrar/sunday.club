@@ -207,7 +207,8 @@ export async function GET(req: Request) {
         .bind(league, week)
         .all<Game>()
     ).results;
-    if (await syncLiveResults(week, games, db)) {
+    const liveResults = await syncLiveResults(week, games, db);
+    if (liveResults.updated) {
       games = (
         await db
           .prepare(
@@ -579,6 +580,7 @@ export async function GET(req: Request) {
       leagues,
       league,
       games,
+      liveScores: liveResults.scores,
       picks: Object.fromEntries(picks.map((p) => [p.game, p.team])),
       pickCounts,
       picksPublished: Boolean(publication),

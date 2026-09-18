@@ -1,5 +1,6 @@
 'use client';
 import { currentNflWeek } from '../lib/current-week';
+import type { LiveScore } from '../lib/results';
 /* eslint-disable next/no-html-link-for-pages -- Sites sign-in and sign-out require full top-level navigation. */
 import {
   useCallback,
@@ -221,6 +222,7 @@ type State = {
   leagues: League[];
   league: string | null;
   games: Game[];
+  liveScores?: Record<string, LiveScore>;
   picks: Record<string, string>;
   pickCounts: Record<string, Record<string, number>>;
   picksPublished: boolean;
@@ -297,37 +299,40 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
       previousCurrentWeek.current = current;
     }
   }, [now]);
-  const load = useCallback(async () => {
-    const id = ++requestId.current;
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/club?week=${week}&league=${encodeURIComponent(leagueId)}`,
-        { cache: 'no-store' },
-      );
-      const body = (await res.json()) as State & { error: string };
-      if (id !== requestId.current) return;
-      if (!res.ok) {
-        if (res.status === 401) {
-          setSignedOut(true);
-          setData(null);
-          return;
-        }
-        throw new Error(body.error);
-      }
-      setSignedOut(false);
-      setData(body);
-      offset.current = body.serverNow - Date.now();
-      setNow(body.serverNow);
-    } catch (e) {
-      if (id === requestId.current)
-        setError(
-          e instanceof Error ? e.message : 'Unable to load your league.',
+  const load = useCallback(
+    async (background = false) => {
+      const id = ++requestId.current;
+      if (!background) setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/club?week=${week}&league=${encodeURIComponent(leagueId)}`,
+          { cache: 'no-store' },
         );
-    } finally {
-      if (id === requestId.current) setLoading(false);
-    }
-  }, [week, leagueId]);
+        const body = (await res.json()) as State & { error: string };
+        if (id !== requestId.current) return;
+        if (!res.ok) {
+          if (res.status === 401) {
+            setSignedOut(true);
+            setData(null);
+            return;
+          }
+          throw new Error(body.error);
+        }
+        setSignedOut(false);
+        setData(body);
+        offset.current = body.serverNow - Date.now();
+        setNow(body.serverNow);
+      } catch (e) {
+        if (id === requestId.current)
+          setError(
+            e instanceof Error ? e.message : 'Unable to load your league.',
+          );
+      } finally {
+        if (id === requestId.current) setLoading(false);
+      }
+    },
+    [week, leagueId],
+  );
   useEffect(() => {
     // eslint-disable-next-line react/react-compiler -- Synchronize the selected league and week with the remote API.
     void load();
@@ -361,7 +366,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
       )
     )
       return;
-    const timer = setTimeout(() => void load(), 60_000);
+    const timer = setTimeout(() => void load(true), 30_000);
     return () => clearTimeout(timer);
   }, [data, load]);
   useEffect(() => {
@@ -1004,6 +1009,27 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                             )}
                           </span>
                         </div>
+                        {data?.liveScores?.[g.id] && (
+                          <div
+                            className={`live-score ${data.liveScores[g.id].state}`}
+                            aria-label={`${g.away} ${data.liveScores[g.id].away}, ${g.home} ${data.liveScores[g.id].home}, ${data.liveScores[g.id].detail}`}
+                          >
+                            <strong>
+                              {g.away} <b>{data.liveScores[g.id].away}</b>
+                            </strong>
+                            <span>
+                              <b>
+                                {data.liveScores[g.id].state === 'live'
+                                  ? '● LIVE'
+                                  : 'FINAL'}
+                              </b>
+                              <small>{data.liveScores[g.id].detail}</small>
+                            </span>
+                            <strong>
+                              <b>{data.liveScores[g.id].home}</b> {g.home}
+                            </strong>
+                          </div>
+                        )}
                         <div className="matchup">
                           {[g.away, g.home].map((id, i) => (
                             <button

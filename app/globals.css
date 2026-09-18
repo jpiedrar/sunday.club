@@ -1709,3 +1709,42 @@ button {
     font-size: 13px;
   }
 }
+
+.live-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, #16a34a 8%, transparent);
+}
+.live-score > strong {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.live-score > strong > b {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.live-score > span {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+  font-size: 14px;
+}
+.live-score > span > b {
+  color: #15803d;
+}
+.live-score small {
+  font-size: 12px;
+}
+[data-theme='dark'] .live-score > span > b {
+  color: #4ade80;
+}
+.live-score.final {
+  background: transparent;
+}
