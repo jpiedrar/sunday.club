@@ -46,3 +46,28 @@ assert.equal(
   1,
 );
 console.log('Matchup news filtering checks passed');
+
+// Exercise the request itself so the endpoint and identification header regressions are caught.
+// @ts-expect-error Node's strip-types runner requires the .ts extension.
+const { getPickNews } = await import('../lib/news.ts');
+let requests = 0;
+globalThis.fetch = async (url, options) => {
+  requests++;
+  assert.equal(
+    String(url),
+    'https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=50',
+  );
+  assert.equal(
+    new Headers(options?.headers).get('user-agent'),
+    'SundayClub/1.0',
+  );
+  return Response.json({
+    articles: [article(99, 'Star injured', 'BUF', new Date(Date.now() - 1000).toISOString())],
+  });
+};
+const feed = await getPickNews(games as never);
+assert.equal(feed.unavailable, false);
+assert.equal(feed.games.a[0].id, '99');
+await getPickNews(games as never);
+assert.equal(requests, 1, 'Reuse successful news cache');
+console.log('News feed request checks passed');

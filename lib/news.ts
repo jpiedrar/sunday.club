@@ -68,7 +68,7 @@ export function matchupNews(
         : /\b(quarterback|QB|starter|starting)\b/i.test(text)
           ? 'Quarterback'
           : /\b(suspend\w*|suspension|trade\w*|signs?|signed|released|roster|benched)\b/i.test(
-                text,
+                article.headline,
               )
             ? 'Roster update'
             : null;
@@ -103,18 +103,25 @@ export function matchupNews(
 
 export async function getPickNews(games: Game[]) {
   const now = Date.now();
-  if (!cached || now - cached.checkedAt >= TTL) {
+  if (
+    !cached ||
+    now - cached.checkedAt >= (cached.unavailable ? 60_000 : TTL)
+  ) {
     pending ??= (async () => {
       try {
         const response = await fetch(
-          'https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=100',
+          'https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=50',
           {
             signal: AbortSignal.timeout(5000),
-            headers: { Accept: 'application/json' },
+            headers: {
+              Accept: 'application/json',
+              'User-Agent': 'SundayClub/1.0',
+            },
             cache: 'no-store',
           },
         );
-        if (!response.ok) throw new Error('News feed unavailable');
+        if (!response.ok)
+          throw new Error(`News feed unavailable (HTTP ${response.status})`);
         const payload = (await response.json()) as { articles?: Article[] };
         if (!Array.isArray(payload.articles))
           throw new Error('Invalid news feed');
@@ -124,7 +131,11 @@ export async function getPickNews(games: Game[]) {
           updatedAt: now,
           unavailable: false,
         };
-      } catch {
+      } catch (error) {
+        console.error(
+          'NFL news feed failed:',
+          error instanceof Error ? error.message : String(error),
+        );
         cached = {
           articles: cached?.articles ?? [],
           checkedAt: now,
