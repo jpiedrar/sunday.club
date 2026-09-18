@@ -1748,3 +1748,57 @@ button {
 .live-score.final {
   background: transparent;
 }
+
+.pick-news {
+  border-top: 1px solid var(--border);
+  padding: 14px 16px;
+}
+.pick-news summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pick-news summary > span {
+  float: right;
+  font-weight: 400;
+  font-size: 12px;
+}
+.pick-news ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 14px;
+}
+.pick-news li {
+  display: grid;
+  gap: 5px;
+}
+.pick-news a {
+  font-size: 14px;
+  line-height: 1.45;
+  text-decoration: none;
+  font-weight: 600;
+}
+.pick-news a:hover {
+  text-decoration: underline;
+}
+.pick-news a svg {
+  display: inline;
+  vertical-align: middle;
+}
+.pick-news small,
+.news-topic {
+  font-size: 12px;
+}
+.news-topic {
+  color: #b45309;
+  font-weight: 700;
+}
+[data-theme='dark'] .news-topic {
+  color: #fbbf24;
+}
+.news-status {
+  font-size: 14px;
+  margin: 12px 0 0;
+}

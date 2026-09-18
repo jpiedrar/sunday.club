@@ -1,6 +1,7 @@
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { database, seed } from '@/db/store';
 import { getMarketOdds } from '@/lib/odds';
+import { getPickNews } from '@/lib/news';
 import { syncLiveResults } from '@/lib/results';
 import { syncOfficialSchedule } from '@/lib/schedule';
 import { teams, type Game } from '@/lib/games';
@@ -219,6 +220,7 @@ export async function GET(req: Request) {
       ).results;
     }
     const marketOdds = await getMarketOdds(week, games);
+    const pickNews = await getPickNews(games);
     const marketWrites = Object.entries(marketOdds).map(([game, odds]) =>
       db
         .prepare(
@@ -581,6 +583,7 @@ export async function GET(req: Request) {
       league,
       games,
       liveScores: liveResults.scores,
+      pickNews,
       picks: Object.fromEntries(picks.map((p) => [p.game, p.team])),
       pickCounts,
       picksPublished: Boolean(publication),

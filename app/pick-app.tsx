@@ -1,6 +1,7 @@
 'use client';
 import { currentNflWeek } from '../lib/current-week';
 import type { LiveScore } from '../lib/results';
+import type { PickNews } from '../lib/news';
 /* eslint-disable next/no-html-link-for-pages -- Sites sign-in and sign-out require full top-level navigation. */
 import {
   useCallback,
@@ -223,6 +224,11 @@ type State = {
   league: string | null;
   games: Game[];
   liveScores?: Record<string, LiveScore>;
+  pickNews?: {
+    games: Record<string, PickNews[]>;
+    updatedAt: number;
+    unavailable: boolean;
+  };
   picks: Record<string, string>;
   pickCounts: Record<string, Record<string, number>>;
   picksPublished: boolean;
@@ -341,6 +347,11 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     const timer = setInterval(() => setNow(Date.now() + offset.current), 1000);
     return () => clearInterval(timer);
   }, []);
+  useEffect(() => {
+    if (view !== 'picks') return;
+    const timer = setInterval(() => void load(true), 5 * 60_000);
+    return () => clearInterval(timer);
+  }, [view, load]);
   useEffect(() => {
     if (!data) return;
     const nextKickoff = data.games
@@ -1110,6 +1121,74 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                               minute: '2-digit',
                             })}
                           </div>
+                        )}
+                        {!['final', 'cancelled'].includes(g.status) && (
+                          <details
+                            className="pick-news"
+                            open={Boolean(data?.pickNews?.games[g.id]?.length)}
+                          >
+                            <summary>
+                              Matchup news{' '}
+                              <span>
+                                {data?.pickNews?.games[g.id]?.length ?? 0}{' '}
+                                updates
+                              </span>
+                            </summary>
+                            {data?.pickNews?.unavailable && (
+                              <p className="news-status">
+                                News feed temporarily unavailable.{' '}
+                                {data.pickNews.updatedAt
+                                  ? 'Showing previously fetched updates.'
+                                  : 'Try refreshing later.'}
+                              </p>
+                            )}
+                            {data?.pickNews?.games[g.id]?.length ? (
+                              <ul>
+                                {data.pickNews.games[g.id].map((item) => (
+                                  <li key={item.id}>
+                                    <span className="news-topic">
+                                      {item.topic}
+                                    </span>
+                                    <a
+                                      href={item.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      {item.headline}{' '}
+                                      <ArrowUpRight
+                                        size={14}
+                                        aria-hidden="true"
+                                      />
+                                    </a>
+                                    <small>
+                                      ESPN ·{' '}
+                                      <time
+                                        dateTime={new Date(
+                                          item.publishedAt,
+                                        ).toISOString()}
+                                      >
+                                        {new Date(
+                                          item.publishedAt,
+                                        ).toLocaleString(undefined, {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          hour: 'numeric',
+                                          minute: '2-digit',
+                                        })}
+                                      </time>
+                                    </small>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              !data?.pickNews?.unavailable && (
+                                <p className="news-status">
+                                  No recent injury, quarterback or roster news
+                                  in this feed.
+                                </p>
+                              )
+                            )}
+                          </details>
                         )}
                         {g.status === 'final' && (
                           <div className="result-line">
