@@ -886,19 +886,24 @@ button.outline,
   font-size: 12px;
   white-space: nowrap;
 }
-.league-live-indicator {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 3px 6px;
-  border-radius: 5px;
-  background: #e9f7ef;
-  color: #087b45;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+.picks-table-scroll .league-live-row > td,
+.picks-table-scroll .league-live-row > td:first-child {
+  background: #e6f7ed;
+  border-top: 1px solid #89d5aa;
+  border-bottom: 1px solid #89d5aa;
 }
-[data-theme='dark'] .league-live-indicator {
+.picks-table-scroll .league-live-row > td:first-child {
+  box-shadow: inset 4px 0 #238751;
+  color: #075c35;
+  font-weight: 800;
+}
+[data-theme='dark'] .picks-table-scroll .league-live-row > td,
+[data-theme='dark'] .picks-table-scroll .league-live-row > td:first-child {
   background: #193b2b;
+  border-color: #387e55;
+}
+[data-theme='dark'] .picks-table-scroll .league-live-row > td:first-child {
+  box-shadow: inset 4px 0 #4ade80;
   color: #86efac;
 }
 .published-team {
