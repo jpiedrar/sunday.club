@@ -78,6 +78,7 @@ input:focus-visible {
   letter-spacing: -1px;
   font-size: 23px;
   gap: 5px;
+  white-space: nowrap;
 }
 .brand .light {
   font-weight: 400;
@@ -91,6 +92,8 @@ input:focus-visible {
   display: grid;
   place-items: center;
   margin-right: 6px;
+  flex: none;
+  overflow: hidden;
 }
 .header-right {
   display: flex;
@@ -704,6 +707,14 @@ button.outline,
   padding: 8px;
   align-items: center;
   justify-content: center;
+}
+@media (max-width: 480px) {
+  .header { padding: 0 14px; }
+  .brand { font-size: 15px; gap: 3px; letter-spacing: -0.7px; }
+  .brand-icon, .brand-icon img { width: 32px; height: 32px; }
+  .brand-icon { margin-right: 2px; }
+  .header-right { gap: 5px; }
+  .header-right .icon-button { padding: 5px; }
 }
 .league-link {
   display: flex;

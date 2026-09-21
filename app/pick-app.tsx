@@ -671,9 +671,9 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
       <header className="header">
         <a className="brand" href="/">
           <span className="brand-icon">
-            <Zap size={23} fill="currentColor" />
+            <img src="/field-goal.svg" width="38" height="38" alt="" />
           </span>
-          SUNDAY<span className="light">CLUB</span>
+          MINGO<span className="light">QUINIELA</span>
         </a>
         <div className="header-right">
           <span className="season">2026 SEASON</span>
@@ -2013,7 +2013,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
               <h2 className="spaced">Keep Sunday close.</h2>
               <p>
                 {installed
-                  ? 'Sunday Club is running as an installed app.'
+                  ? 'Mingo Quiniela is running as an installed app.'
                   : 'On iPhone, open in Safari and use Share → Add to Home Screen. On Android, use your browser’s Install app option.'}
               </p>
               <p className="footnote">

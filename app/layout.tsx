@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 export const metadata: Metadata = {
-  title: 'Sunday Club — NFL Pick’em',
+  title: 'Mingo Quiniela — NFL Pick’em',
   description:
     'Your private NFL pick’em league. Pick winners, follow your crew, and own Sunday.',
   manifest: '/manifest.webmanifest',
