@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Mingo Quiniela — NFL Pick’em',
   description:
-    'Your private NFL pick’em league. Pick winners, follow your crew, and own Sunday.',
+    'Your private NFL pick’em league. Pick winners, follow your crew, and track the season.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [

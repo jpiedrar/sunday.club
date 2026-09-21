@@ -722,7 +722,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
             className="league-link eyebrow"
             onClick={() => setView('leagues')}
           >
-            {league ? league.name : 'YOUR SUNDAY TRADITION'}
+            {league ? league.name : 'YOUR MINGO QUINIELA'}
             {league && <ChevronRight size={14} />}
           </button>
           <span className="pill">
@@ -1751,11 +1751,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
               ) : (
                 <p>No leagues yet. Bring your friends together below.</p>
               )}
-              {smallForm(
-                'create',
-                'Start a new league',
-                'e.g. Sunday regulars',
-              )}
+              {smallForm('create', 'Start a new league', 'e.g. Mingo crew')}
               {smallForm(
                 'join',
                 'Join with an invite code',
@@ -1816,7 +1812,16 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                 {data?.members.map((m) => (
                   <div className="member" key={m.id}>
                     <span className="avatar">
-                      {m.name.slice(0, 1).toUpperCase()}
+                      {m.favoriteTeam ? (
+                        <img
+                          src={`/team-logos/${m.favoriteTeam}.png`}
+                          alt=""
+                          width="30"
+                          height="30"
+                        />
+                      ) : (
+                        m.name.slice(0, 1).toUpperCase()
+                      )}
                     </span>
                     <span>
                       {m.name}
@@ -1953,9 +1958,19 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
         {view === 'account' && (
           <div className="management-grid">
             <section className="panel">
-              <CircleUserRound size={35} />
+              {data?.profile.favoriteTeam ? (
+                <img
+                  className="account-team-avatar"
+                  src={`/team-logos/${data.profile.favoriteTeam}.png`}
+                  alt={`${team(data.profile.favoriteTeam)[2]} logo`}
+                  width="56"
+                  height="56"
+                />
+              ) : (
+                <CircleUserRound size={35} />
+              )}
               <h2 className="spaced">
-                {data?.profile.name ?? 'Welcome to the club.'}
+                {data?.profile.name ?? 'Welcome to Mingo Quiniela.'}
               </h2>
               {data ? (
                 <>
@@ -2032,8 +2047,8 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
               )}
             </section>
             <section className="panel">
-              <Zap size={30} />
-              <h2 className="spaced">Keep Sunday close.</h2>
+              <img src="/field-goal.svg" alt="" width="36" height="36" />
+              <h2 className="spaced">Take Mingo Quiniela with you.</h2>
               <p>
                 {installed
                   ? 'Mingo Quiniela is running as an installed app.'
