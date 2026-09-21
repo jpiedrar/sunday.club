@@ -5,6 +5,14 @@ export const metadata: Metadata = {
   description:
     'Your private NFL pick’em league. Pick winners, follow your crew, and own Sunday.',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.ico?v=2', sizes: 'any' },
+      { url: '/favicon.svg?v=2', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.ico?v=2',
+    apple: '/apple-touch-icon.png',
+  },
 };
 export default function RootLayout({
   children,
@@ -12,6 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#123e35" />
         <meta
           name="viewport"
