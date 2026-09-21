@@ -1522,6 +1522,11 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                   <TableRow key={game.id}>
                                     <TableCell className="matchup-cell">
                                       {game.away} @ {game.home}
+                                      {isLive(game) && (
+                                        <span className="league-live-indicator">
+                                          ● LIVE NOW
+                                        </span>
+                                      )}
                                     </TableCell>
                                     {data.revealedGames.includes(game.id) ? (
                                       data.members.map((member) => {
