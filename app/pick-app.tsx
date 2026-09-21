@@ -449,6 +449,19 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     );
   };
   const games = data?.games ?? fallbackGames.filter((g) => g.week === week);
+  const isLive = (game: Game) =>
+    data?.liveScores?.[game.id]?.state === 'live' &&
+    game.status !== 'final' &&
+    game.status !== 'cancelled';
+  const pickGames = [...games].sort((a, b) => {
+    const order = (game: Game) =>
+      isLive(game)
+        ? 0
+        : game.status === 'final' || game.status === 'cancelled'
+          ? 2
+          : 1;
+    return order(a) - order(b) || a.kickoff - b.kickoff;
+  });
   const picks = data?.picks ?? {};
   const count = games.filter((g) => picks[g.id]).length;
   const hasRevealedPicks = Boolean(data?.revealedGames.length);
@@ -1001,12 +1014,17 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                     </span>
                   </div>
                   <div className="games">
-                    {games.map((g) => (
-                      <article className="game" key={g.id}>
+                    {pickGames.map((g) => (
+                      <article
+                        className={`game${isLive(g) ? ' game-live' : ''}`}
+                        key={g.id}
+                      >
                         <div className="game-meta">
                           <span>{date(g)}</span>
                           <span>
-                            {locked(g) ? (
+                            {isLive(g) ? (
+                              <span className="live-indicator">● LIVE NOW</span>
+                            ) : locked(g) ? (
                               <>
                                 <LockKeyhole size={12} />
                                 {g.status === 'final'
@@ -1020,27 +1038,6 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                             )}
                           </span>
                         </div>
-                        {data?.liveScores?.[g.id] && (
-                          <div
-                            className={`live-score ${data.liveScores[g.id].state}`}
-                            aria-label={`${g.away} ${data.liveScores[g.id].away}, ${g.home} ${data.liveScores[g.id].home}, ${data.liveScores[g.id].detail}`}
-                          >
-                            <strong>
-                              {g.away} <b>{data.liveScores[g.id].away}</b>
-                            </strong>
-                            <span>
-                              <b>
-                                {data.liveScores[g.id].state === 'live'
-                                  ? '● LIVE'
-                                  : 'FINAL'}
-                              </b>
-                              <small>{data.liveScores[g.id].detail}</small>
-                            </span>
-                            <strong>
-                              <b>{data.liveScores[g.id].home}</b> {g.home}
-                            </strong>
-                          </div>
-                        )}
                         <div className="matchup">
                           {[g.away, g.home].map((id, i) => (
                             <button

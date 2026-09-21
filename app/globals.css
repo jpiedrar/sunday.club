@@ -709,12 +709,28 @@ button.outline,
   justify-content: center;
 }
 @media (max-width: 480px) {
-  .header { padding: 0 14px; }
-  .brand { font-size: 15px; gap: 3px; letter-spacing: -0.7px; }
-  .brand-icon, .brand-icon img { width: 32px; height: 32px; }
-  .brand-icon { margin-right: 2px; }
-  .header-right { gap: 5px; }
-  .header-right .icon-button { padding: 5px; }
+  .header {
+    padding: 0 14px;
+  }
+  .brand {
+    font-size: 15px;
+    gap: 3px;
+    letter-spacing: -0.7px;
+  }
+  .brand-icon,
+  .brand-icon img {
+    width: 32px;
+    height: 32px;
+  }
+  .brand-icon {
+    margin-right: 2px;
+  }
+  .header-right {
+    gap: 5px;
+  }
+  .header-right .icon-button {
+    padding: 5px;
+  }
 }
 .league-link {
   display: flex;
@@ -1721,43 +1737,29 @@ button {
   }
 }
 
-.live-score {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, #16a34a 8%, transparent);
+/* Live games stay prominent without exposing their scores. */
+.game-live {
+  border-color: #2aa66a;
 }
-.live-score > strong {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
+.game-live .game-meta {
+  background: #e9f7ef;
+  border-bottom-color: #c4ead3;
 }
-.live-score > strong > b {
-  font-size: 24px;
-  font-variant-numeric: tabular-nums;
+.game-meta .live-indicator {
+  color: #087b45;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
-.live-score > span {
-  display: grid;
-  gap: 2px;
-  text-align: center;
-  font-size: 14px;
+[data-theme='dark'] .game-live {
+  border-color: #4ade80;
 }
-.live-score > span > b {
-  color: #15803d;
+[data-theme='dark'] .game-live .game-meta {
+  background: #193b2b;
+  border-bottom-color: #286946;
 }
-.live-score small {
-  font-size: 12px;
-}
-[data-theme='dark'] .live-score > span > b {
-  color: #4ade80;
-}
-.live-score.final {
-  background: transparent;
+[data-theme='dark'] .game-meta .live-indicator {
+  color: #86efac;
 }
 
 .pick-news {
