@@ -439,10 +439,19 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const standingsBadge = (badge: BadgeKey, count?: number) => {
     const option = badgeOptions.find((item) => item.key === badge)!;
     const Icon = badgeIcons[badge];
+    const earned = count ?? 1;
+    const selectedPeriod =
+      period === 'weekly'
+        ? `Week ${week}`
+        : period === 'monthly'
+          ? `Month ${Math.ceil(week / 4)}`
+          : 'the full season';
+    const tooltip = `${option.name} · earned ${earned} ${earned === 1 ? 'time' : 'times'} in ${selectedPeriod}`;
     return (
       <span
         className={`player-badge ${badge}`}
-        aria-label={`${option.name}${count ? `, ${count}` : ''}: ${option.description}`}
+        title={tooltip}
+        aria-label={`${tooltip}. ${option.description}`}
       >
         <Icon size={15} aria-hidden="true" />
       </span>
