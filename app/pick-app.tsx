@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ComponentType,
+  type TouchEvent,
 } from 'react';
 import {
   ArrowUpRight,
@@ -296,6 +297,9 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const offset = useRef(0);
   const requestId = useRef(0);
+  const swipeStart = useRef<{ x: number; y: number; time: number } | null>(
+    null,
+  );
   useEffect(() => {
     if (!now) return;
     const current = currentNflWeek(now);
@@ -663,6 +667,43 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     }
   }
   const month = Math.ceil(week / 4);
+  const startTabSwipe = (event: TouchEvent<HTMLElement>) => {
+    if (
+      event.touches.length !== 1 ||
+      (event.target as Element).closest(
+        'input, select, textarea, [data-slot="table-container"], .weekbar, .period-tabs',
+      )
+    ) {
+      swipeStart.current = null;
+      return;
+    }
+    const touch = event.touches[0];
+    swipeStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+    };
+  };
+  const finishTabSwipe = (event: TouchEvent<HTMLElement>) => {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start || event.changedTouches.length !== 1) return;
+    const touch = event.changedTouches[0];
+    const horizontal = touch.clientX - start.x;
+    const vertical = touch.clientY - start.y;
+    if (
+      Math.abs(horizontal) < 70 ||
+      Math.abs(horizontal) < Math.abs(vertical) * 1.35 ||
+      Date.now() - start.time > 900
+    )
+      return;
+    const currentIndex = nav.findIndex(([id]) => id === view);
+    const nextIndex = currentIndex + (horizontal < 0 ? 1 : -1);
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= nav.length) return;
+    setView(nav[nextIndex][0]);
+    setNotice('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   function smallForm(
     action: string,
     label: string,
@@ -746,7 +787,14 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
           </button>
         </div>
       </header>
-      <main>
+      <main
+        className="swipe-tabs"
+        onTouchStart={startTabSwipe}
+        onTouchEnd={finishTabSwipe}
+        onTouchCancel={() => {
+          swipeStart.current = null;
+        }}
+      >
         <div className="league-line">
           <button
             className="league-link eyebrow"
