@@ -1752,28 +1752,66 @@ button {
   }
 }
 
-/* Live games stay prominent without exposing their scores. */
+/* Live games are visually distinct across the entire card, with scores in view. */
 .game-live {
-  border-color: #2aa66a;
+  border: 2px solid #238751;
+  border-left-width: 6px;
+  background: #effaf2;
+  box-shadow: 0 4px 16px rgba(16, 117, 65, 0.12);
+}
+.game-live .game-meta,
+.game-live .team,
+.game-live .live-score {
+  background: #effaf2;
 }
 .game-live .game-meta {
-  background: #e9f7ef;
   border-bottom-color: #c4ead3;
 }
-.game-meta .live-indicator {
+.game-live .team:first-child {
+  border-right-color: #c4ead3;
+}
+.game-live .team.chosen {
+  background: #def3e4;
+}
+.live-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.live-score > strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.live-score > strong > b {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.live-score > span {
+  text-align: center;
+  font-weight: 700;
+}
+.game-live .live-score > span {
   color: #087b45;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
 }
 [data-theme='dark'] .game-live {
   border-color: #4ade80;
+  background: #193329;
+  box-shadow: none;
 }
-[data-theme='dark'] .game-live .game-meta {
-  background: #193b2b;
-  border-bottom-color: #286946;
+[data-theme='dark'] .game-live .game-meta,
+[data-theme='dark'] .game-live .team,
+[data-theme='dark'] .game-live .live-score {
+  background: #193329;
 }
-[data-theme='dark'] .game-meta .live-indicator {
+[data-theme='dark'] .game-live .team.chosen {
+  background: #23503a;
+}
+[data-theme='dark'] .game-live .live-score > span {
   color: #86efac;
 }
 

@@ -1021,23 +1021,37 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                       >
                         <div className="game-meta">
                           <span>{date(g)}</span>
-                          <span>
-                            {isLive(g) ? (
-                              <span className="live-indicator">● LIVE NOW</span>
-                            ) : locked(g) ? (
-                              <>
-                                <LockKeyhole size={12} />
-                                {g.status === 'final'
-                                  ? 'Final'
-                                  : g.status === 'cancelled'
-                                    ? 'Cancelled'
-                                    : 'Locked'}
-                              </>
-                            ) : (
-                              <>● Upcoming</>
-                            )}
-                          </span>
+                          {!isLive(g) && (
+                            <span>
+                              {locked(g) ? (
+                                <>
+                                  <LockKeyhole size={12} />
+                                  {g.status === 'final'
+                                    ? 'Final'
+                                    : g.status === 'cancelled'
+                                      ? 'Cancelled'
+                                      : 'Locked'}
+                                </>
+                              ) : (
+                                <>● Upcoming</>
+                              )}
+                            </span>
+                          )}
                         </div>
+                        {data?.liveScores?.[g.id] && (
+                          <div
+                            className={`live-score ${data.liveScores[g.id].state}`}
+                            aria-label={`${g.away} ${data.liveScores[g.id].away}, ${g.home} ${data.liveScores[g.id].home}, ${data.liveScores[g.id].detail}`}
+                          >
+                            <strong>
+                              {g.away} <b>{data.liveScores[g.id].away}</b>
+                            </strong>
+                            <span>{data.liveScores[g.id].detail}</span>
+                            <strong>
+                              <b>{data.liveScores[g.id].home}</b> {g.home}
+                            </strong>
+                          </div>
+                        )}
                         <div className="matchup">
                           {[g.away, g.home].map((id, i) => (
                             <button
