@@ -297,8 +297,15 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const offset = useRef(0);
   const requestId = useRef(0);
-  const swipeStart = useRef<{ x: number; y: number; time: number } | null>(
-    null,
+  const swipeSurface = useRef<HTMLElement | null>(null);
+  const swipeAnimating = useRef(false);
+  const swipeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  useEffect(
+    () => () => {
+      if (swipeTimer.current) clearTimeout(swipeTimer.current);
+    },
+    [],
   );
   useEffect(() => {
     if (!now) return;
@@ -669,6 +676,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const month = Math.ceil(week / 4);
   const startTabSwipe = (event: TouchEvent<HTMLElement>) => {
     if (
+      swipeAnimating.current ||
       event.touches.length !== 1 ||
       (event.target as Element).closest(
         'input, select, textarea, [data-slot="table-container"], .weekbar, .period-tabs',
@@ -681,28 +689,85 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     swipeStart.current = {
       x: touch.clientX,
       y: touch.clientY,
-      time: Date.now(),
     };
+    const surface = swipeSurface.current;
+    if (surface) {
+      surface.style.transition = 'none';
+      surface.style.willChange = 'transform, opacity';
+    }
+  };
+  const moveTabSwipe = (event: TouchEvent<HTMLElement>) => {
+    const start = swipeStart.current;
+    const surface = swipeSurface.current;
+    if (!start || !surface || event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    const horizontal = touch.clientX - start.x;
+    const vertical = touch.clientY - start.y;
+    if (Math.abs(horizontal) < 6 || Math.abs(horizontal) <= Math.abs(vertical))
+      return;
+    event.preventDefault();
+    const currentIndex = nav.findIndex(([id]) => id === view);
+    const atEdge =
+      (currentIndex === 0 && horizontal > 0) ||
+      (currentIndex === nav.length - 1 && horizontal < 0);
+    const movement = atEdge ? horizontal * 0.22 : horizontal;
+    surface.style.transform = `translate3d(${movement}px, 0, 0)`;
+    surface.style.opacity = String(
+      1 - Math.min(Math.abs(movement) / window.innerWidth, 0.18),
+    );
   };
   const finishTabSwipe = (event: TouchEvent<HTMLElement>) => {
     const start = swipeStart.current;
     swipeStart.current = null;
-    if (!start || event.changedTouches.length !== 1) return;
+    const surface = swipeSurface.current;
+    if (!start || !surface || event.changedTouches.length !== 1) return;
     const touch = event.changedTouches[0];
     const horizontal = touch.clientX - start.x;
     const vertical = touch.clientY - start.y;
-    if (
-      Math.abs(horizontal) < 70 ||
-      Math.abs(horizontal) < Math.abs(vertical) * 1.35 ||
-      Date.now() - start.time > 900
-    )
-      return;
     const currentIndex = nav.findIndex(([id]) => id === view);
     const nextIndex = currentIndex + (horizontal < 0 ? 1 : -1);
-    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= nav.length) return;
-    setView(nav[nextIndex][0]);
-    setNotice('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const shouldSnapBack =
+      Math.abs(horizontal) < 70 ||
+      Math.abs(horizontal) < Math.abs(vertical) * 1.35 ||
+      currentIndex < 0 ||
+      nextIndex < 0 ||
+      nextIndex >= nav.length;
+    surface.style.transition =
+      'transform 180ms cubic-bezier(.22,.8,.32,1), opacity 180ms ease';
+    if (shouldSnapBack) {
+      surface.style.transform = 'translate3d(0, 0, 0)';
+      surface.style.opacity = '1';
+      swipeTimer.current = setTimeout(() => {
+        surface.style.transition = '';
+        surface.style.willChange = '';
+      }, 190);
+      return;
+    }
+    swipeAnimating.current = true;
+    const direction = horizontal < 0 ? -1 : 1;
+    surface.style.transform = `translate3d(${direction * window.innerWidth}px, 0, 0)`;
+    surface.style.opacity = '0.55';
+    swipeTimer.current = setTimeout(() => {
+      setView(nav[nextIndex][0]);
+      setNotice('');
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      surface.style.transition = 'none';
+      surface.style.transform = `translate3d(${-direction * 52}px, 0, 0)`;
+      surface.style.opacity = '0.72';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          surface.style.transition =
+            'transform 190ms cubic-bezier(.22,.8,.32,1), opacity 190ms ease';
+          surface.style.transform = 'translate3d(0, 0, 0)';
+          surface.style.opacity = '1';
+          swipeTimer.current = setTimeout(() => {
+            surface.style.transition = '';
+            surface.style.willChange = '';
+            swipeAnimating.current = false;
+          }, 200);
+        });
+      });
+    }, 180);
   };
   function smallForm(
     action: string,
@@ -788,11 +853,24 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
         </div>
       </header>
       <main
+        ref={swipeSurface}
         className="swipe-tabs"
         onTouchStart={startTabSwipe}
+        onTouchMove={moveTabSwipe}
         onTouchEnd={finishTabSwipe}
         onTouchCancel={() => {
           swipeStart.current = null;
+          const surface = swipeSurface.current;
+          if (surface) {
+            surface.style.transition =
+              'transform 180ms ease, opacity 180ms ease';
+            surface.style.transform = 'translate3d(0, 0, 0)';
+            surface.style.opacity = '1';
+            swipeTimer.current = setTimeout(() => {
+              surface.style.transition = '';
+              surface.style.willChange = '';
+            }, 190);
+          }
         }}
       >
         <div className="league-line">
