@@ -469,6 +469,9 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
             Earned <strong>{earnedLabel}</strong>
           </span>
           <span className="badge-overlay-period">{selectedPeriod}</span>
+          <span className="badge-overlay-description">
+            {option.description}
+          </span>
         </span>
       </button>
     );
@@ -1409,44 +1412,6 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                             Find your league
                           </button>
                         </div>
-                      )}
-                      {visibleBadgeKeys.size > 0 && (
-                        <section
-                          className="badge-legend"
-                          aria-labelledby="badge-legend-title"
-                        >
-                          <div className="badge-legend-heading">
-                            <h3 id="badge-legend-title">Badge legend</h3>
-                            <small>
-                              Counts follow the selected period. Tied leaders
-                              share badges.
-                            </small>
-                          </div>
-                          <div className="badge-legend-grid">
-                            {badgeOptions
-                              .filter(({ key }) => visibleBadgeKeys.has(key))
-                              .map((badge) => {
-                                const BadgeIcon = badgeIcons[badge.key];
-                                return (
-                                  <div
-                                    className="badge-legend-item"
-                                    key={badge.key}
-                                  >
-                                    <span
-                                      className={`player-badge ${badge.key}`}
-                                      aria-hidden="true"
-                                    >
-                                      <BadgeIcon size={15} />
-                                    </span>
-                                    <p>
-                                      <strong>{badge.name}</strong>
-                                      <span>{badge.description}</span>
-                                    </p>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </section>
                       )}
                       <p className="footnote">
                         1 point per correct winner. Ties and cancelled games

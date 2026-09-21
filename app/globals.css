@@ -1105,7 +1105,7 @@ button.outline,
   z-index: 50;
   top: calc(100% + 10px);
   left: 50%;
-  width: 210px;
+  width: 230px;
   padding: 12px;
   border: 1px solid #2d6c59;
   border-radius: 12px;
@@ -1197,6 +1197,15 @@ button.outline,
   font-weight: 700;
   text-transform: uppercase;
 }
+.badge-overlay-description {
+  display: block;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgb(168 215 194 / 22%);
+  color: #d5e9df;
+  font-size: 11px;
+  line-height: 1.45;
+}
 .player-badge.vende-patrias {
   background: #f5e7e3;
   color: #884834;
@@ -1225,49 +1234,6 @@ button.outline,
 .player-badge.no-guts-no-glory {
   background: #ffe3d7;
   color: #8b3e21;
-}
-.badge-legend {
-  margin-top: 22px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #f7f9f8;
-}
-.badge-legend-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.badge-legend-heading h3 {
-  margin: 0;
-  font-size: 14px;
-}
-.badge-legend-heading small {
-  color: #6e7c76;
-  font-size: 10px;
-  text-align: right;
-}
-.badge-legend-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 14px;
-}
-.badge-legend-item {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: start;
-  gap: 9px;
-  margin: 8px 0;
-}
-.badge-legend-item p {
-  display: grid;
-  gap: 1px;
-  margin: 0 !important;
-}
-.badge-legend-item p span {
-  color: #6e7c76;
 }
 .favorite-required {
   display: flex;
@@ -1673,9 +1639,6 @@ button.outline,
 [data-theme='dark'] .favorite-team-avatar {
   background: #eef2ef;
 }
-[data-theme='dark'] .badge-legend {
-  background: #182829;
-}
 [data-theme='dark'] .super-bowl-card {
   background: linear-gradient(135deg, #2e2b1d, #25281e);
   border-color: #6f6330;
@@ -1775,15 +1738,6 @@ button {
   }
   .season-settings-fields {
     grid-template-columns: 1fr;
-  }
-  .badge-legend-grid {
-    grid-template-columns: 1fr;
-  }
-  .badge-legend-heading {
-    display: grid;
-  }
-  .badge-legend-heading small {
-    text-align: left;
   }
   .super-bowl-card {
     grid-template-columns: 1fr;
