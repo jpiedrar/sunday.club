@@ -456,19 +456,21 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
         <Icon size={15} aria-hidden="true" />
         <span className="badge-overlay" role="tooltip">
           <span className="badge-overlay-brand">
-            <Flag size={11} aria-hidden="true" />
-            Mingo Quiniela
+            <span>
+              <Flag size={11} aria-hidden="true" />
+              Mingo Quiniela
+            </span>
+            <span className="badge-overlay-period">{selectedPeriod}</span>
           </span>
           <span className="badge-overlay-title">
             <span className={`badge-overlay-icon ${badge}`}>
               <Icon size={16} aria-hidden="true" />
             </span>
-            <strong>{option.name}</strong>
+            <strong>
+              {option.name}{' '}
+              <span className="badge-overlay-times">x{earned}</span>
+            </strong>
           </span>
-          <span className="badge-overlay-count">
-            Earned <strong>{earnedLabel}</strong>
-          </span>
-          <span className="badge-overlay-period">{selectedPeriod}</span>
           <span className="badge-overlay-description">
             {option.description}
           </span>
