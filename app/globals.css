@@ -1094,6 +1094,108 @@ button.outline,
   border-radius: 50%;
   color: #315c7c;
   background: #dfeaf5;
+  cursor: help;
+  font: inherit;
+}
+.standings [data-slot='table-container'] {
+  overflow: visible;
+}
+.badge-overlay {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 10px);
+  left: 50%;
+  width: 210px;
+  padding: 12px;
+  border: 1px solid #2d6c59;
+  border-radius: 12px;
+  color: #effaf5;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgb(103 166 135 / 28%),
+      transparent 42%
+    ),
+    #123c32;
+  box-shadow: 0 14px 30px rgb(13 45 37 / 25%);
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, -3px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 140ms ease;
+}
+.badge-overlay::before {
+  position: absolute;
+  top: -6px;
+  left: calc(50% - 6px);
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid #2d6c59;
+  border-left: 1px solid #2d6c59;
+  background: #174b3e;
+  content: '';
+  transform: rotate(45deg);
+}
+.player-badge:hover .badge-overlay,
+.player-badge:focus .badge-overlay,
+.player-badge:focus-visible .badge-overlay {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+.player-badge:focus-visible {
+  outline: 2px solid #2f715d;
+  outline-offset: 2px;
+}
+.badge-overlay-brand {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 9px;
+  color: #a8d7c2;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.badge-overlay-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+.badge-overlay-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  color: #173f35;
+  background: #dcefe6;
+}
+.badge-overlay-count,
+.badge-overlay-period {
+  display: block;
+  margin-left: 36px;
+}
+.badge-overlay-count {
+  margin-top: 7px;
+  color: #e2f3eb;
+  font-size: 12px;
+}
+.badge-overlay-period {
+  margin-top: 2px;
+  color: #9cc8b5;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 .player-badge.vende-patrias {
   background: #f5e7e3;

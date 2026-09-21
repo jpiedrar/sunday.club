@@ -446,15 +446,31 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
         : period === 'monthly'
           ? `Month ${Math.ceil(week / 4)}`
           : 'the full season';
-    const tooltip = `${option.name} · earned ${earned} ${earned === 1 ? 'time' : 'times'} in ${selectedPeriod}`;
+    const earnedLabel = `${earned} ${earned === 1 ? 'time' : 'times'}`;
     return (
-      <span
+      <button
+        type="button"
         className={`player-badge ${badge}`}
-        title={tooltip}
-        aria-label={`${tooltip}. ${option.description}`}
+        aria-label={`${option.name}. Earned ${earnedLabel} in ${selectedPeriod}. ${option.description}`}
       >
         <Icon size={15} aria-hidden="true" />
-      </span>
+        <span className="badge-overlay" role="tooltip">
+          <span className="badge-overlay-brand">
+            <Flag size={11} aria-hidden="true" />
+            Mingo Quiniela
+          </span>
+          <span className="badge-overlay-title">
+            <span className={`badge-overlay-icon ${badge}`}>
+              <Icon size={16} aria-hidden="true" />
+            </span>
+            <strong>{option.name}</strong>
+          </span>
+          <span className="badge-overlay-count">
+            Earned <strong>{earnedLabel}</strong>
+          </span>
+          <span className="badge-overlay-period">{selectedPeriod}</span>
+        </span>
+      </button>
     );
   };
   const games = data?.games ?? fallbackGames.filter((g) => g.week === week);
