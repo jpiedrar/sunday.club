@@ -906,22 +906,6 @@ button.outline,
 .picks-table-scroll .unanimous-pick-row:not(.league-live-row) > td:first-child {
   box-shadow: inset 3px 0 #7b8994;
 }
-.unanimous-pick-label {
-  display: inline-flex;
-  align-items: center;
-  height: 17px;
-  margin-left: 7px;
-  padding: 0 5px;
-  border: 1px solid #a9b3bb;
-  border-radius: 4px;
-  color: #5b6871;
-  background: #e5eaee;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.45px;
-  line-height: 1;
-  vertical-align: middle;
-}
 .picks-table-scroll .league-live-row > td,
 .picks-table-scroll .league-live-row > td:first-child {
   background: #e6f7ed;
@@ -966,11 +950,6 @@ button.outline,
   .unanimous-pick-row:not(.league-live-row)
   > td:first-child {
   box-shadow: inset 3px 0 #80909a;
-}
-[data-theme='dark'] .unanimous-pick-label {
-  border-color: #66757e;
-  color: #c6d0d5;
-  background: #303c42;
 }
 .published-team {
   position: relative;

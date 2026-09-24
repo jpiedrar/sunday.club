@@ -1682,14 +1682,6 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                     >
                                       <TableCell className="matchup-cell">
                                         {game.away} @ {game.home}
-                                        {unanimous && (
-                                          <span
-                                            className="unanimous-pick-label"
-                                            title="Every member selected the same team, so this result cannot change the relative standings."
-                                          >
-                                            NO IMPACT
-                                          </span>
-                                        )}
                                       </TableCell>
                                       {data.revealedGames.includes(game.id) ? (
                                         data.members.map((member) => {
@@ -1796,9 +1788,9 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                             incorrect or missing picks in red. WILD marks a team
                             selected by 20% or less of the league for that
                             matchup. UPSET marks a unique pick changed after
-                            that matchup became public. NO IMPACT marks a
-                            matchup where every member chose the same team, so
-                            its result cannot change the relative standings.
+                            that matchup became public. Neutral highlighted rows
+                            are matchups where every member chose the same team,
+                            so the result cannot change the relative standings.
                           </p>
                         </>
                       ) : (
