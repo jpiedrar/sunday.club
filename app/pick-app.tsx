@@ -513,6 +513,17 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     const awayPercentage = Math.round(((counts[game.away] ?? 0) / total) * 100);
     return teamId === game.away ? awayPercentage : 100 - awayPercentage;
   };
+  const isUnanimousGame = (game: Game) => {
+    if (!data?.revealedGames.includes(game.id) || !data.members.length)
+      return false;
+    const selections = data.members.map(
+      (member) => data.publishedPicks[member.id]?.[game.id],
+    );
+    return (
+      selections.every((selection) => Boolean(selection)) &&
+      new Set(selections).size === 1
+    );
+  };
   const marketPercentage = (game: Game, teamId: string) => {
     const odds = data?.marketOdds?.[game.id];
     if (!odds) return null;
@@ -1650,119 +1661,133 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {games.map((game) => (
-                                  <TableRow
-                                    key={game.id}
-                                    className={
-                                      isLive(game)
-                                        ? 'league-live-row'
-                                        : undefined
-                                    }
-                                    aria-label={
-                                      isLive(game)
-                                        ? `${game.away} at ${game.home}, game in progress`
-                                        : undefined
-                                    }
-                                  >
-                                    <TableCell className="matchup-cell">
-                                      {game.away} @ {game.home}
-                                    </TableCell>
-                                    {data.revealedGames.includes(game.id) ? (
-                                      data.members.map((member) => {
-                                        const selected =
-                                          data.publishedPicks[member.id]?.[
-                                            game.id
-                                          ];
-                                        const selectedPercentage = selected
-                                          ? pickPercentage(game, selected)
-                                          : null;
-                                        const isWildPick =
-                                          selectedPercentage !== null &&
-                                          selectedPercentage <= 20;
-                                        const isOffset = Boolean(
-                                          data.offsetPicks[member.id]?.includes(
-                                            game.id,
-                                          ),
-                                        );
-                                        const isFinalWithWinner =
-                                          game.status === 'final' &&
-                                          Boolean(game.winner);
-                                        const isCorrect =
-                                          isFinalWithWinner &&
-                                          selected === game.winner;
-                                        const isIncorrect =
-                                          isFinalWithWinner &&
-                                          selected !== game.winner;
-                                        return (
-                                          <TableCell key={member.id}>
-                                            <span
-                                              className={
-                                                selected
-                                                  ? `published-team${isOffset ? ' offset-pick' : isWildPick ? ' wild-pick' : ''}${isCorrect ? ' correct-pick' : isIncorrect ? ' incorrect-pick' : ''}`
-                                                  : `missing-pick${isIncorrect ? ' incorrect-pick' : ''}`
-                                              }
-                                              title={
-                                                isCorrect
-                                                  ? 'Correct pick'
-                                                  : isIncorrect
-                                                    ? selected
-                                                      ? 'Incorrect pick'
-                                                      : 'No pick submitted'
-                                                    : isOffset
-                                                      ? 'Upset · changed after publication and currently the league’s only pick for this team'
-                                                      : isWildPick
-                                                        ? 'Wild pick · selected by 20% or less of the league'
-                                                        : undefined
-                                              }
-                                            >
-                                              {selected ??
-                                                (data.startedGames.includes(
-                                                  game.id,
-                                                )
-                                                  ? 'No pick'
-                                                  : 'Not published')}
-                                              {(isOffset || isWildPick) && (
-                                                <small>
-                                                  {isOffset
-                                                    ? 'UPSET'
-                                                    : 'WILD PICK'}
-                                                </small>
-                                              )}
-                                              {isCorrect && (
-                                                <CircleCheck
-                                                  className="pick-result-icon"
-                                                  size={13}
-                                                  aria-label="Correct pick"
-                                                />
-                                              )}
-                                              {isIncorrect && (
-                                                <CircleX
-                                                  className="pick-result-icon"
-                                                  size={13}
-                                                  aria-label={
-                                                    selected
-                                                      ? 'Incorrect pick'
-                                                      : 'No pick submitted'
-                                                  }
-                                                />
-                                              )}
-                                            </span>
-                                          </TableCell>
-                                        );
-                                      })
-                                    ) : (
-                                      <TableCell
-                                        className="private-game"
-                                        colSpan={Math.max(
-                                          data.members.length,
-                                          1,
+                                {games.map((game) => {
+                                  const unanimous = isUnanimousGame(game);
+                                  return (
+                                    <TableRow
+                                      key={game.id}
+                                      className={[
+                                        isLive(game) ? 'league-live-row' : '',
+                                        unanimous ? 'unanimous-pick-row' : '',
+                                      ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                      aria-label={
+                                        isLive(game)
+                                          ? `${game.away} at ${game.home}, game in progress${unanimous ? ', unanimous picks with no standings impact' : ''}`
+                                          : unanimous
+                                            ? `${game.away} at ${game.home}, unanimous picks with no standings impact`
+                                            : undefined
+                                      }
+                                    >
+                                      <TableCell className="matchup-cell">
+                                        {game.away} @ {game.home}
+                                        {unanimous && (
+                                          <span
+                                            className="unanimous-pick-label"
+                                            title="Every member selected the same team, so this result cannot change the relative standings."
+                                          >
+                                            NO IMPACT
+                                          </span>
                                         )}
-                                      >
-                                        Private until kickoff
                                       </TableCell>
-                                    )}
-                                  </TableRow>
-                                ))}
+                                      {data.revealedGames.includes(game.id) ? (
+                                        data.members.map((member) => {
+                                          const selected =
+                                            data.publishedPicks[member.id]?.[
+                                              game.id
+                                            ];
+                                          const selectedPercentage = selected
+                                            ? pickPercentage(game, selected)
+                                            : null;
+                                          const isWildPick =
+                                            selectedPercentage !== null &&
+                                            selectedPercentage <= 20;
+                                          const isOffset = Boolean(
+                                            data.offsetPicks[
+                                              member.id
+                                            ]?.includes(game.id),
+                                          );
+                                          const isFinalWithWinner =
+                                            game.status === 'final' &&
+                                            Boolean(game.winner);
+                                          const isCorrect =
+                                            isFinalWithWinner &&
+                                            selected === game.winner;
+                                          const isIncorrect =
+                                            isFinalWithWinner &&
+                                            selected !== game.winner;
+                                          return (
+                                            <TableCell key={member.id}>
+                                              <span
+                                                className={
+                                                  selected
+                                                    ? `published-team${isOffset ? ' offset-pick' : isWildPick ? ' wild-pick' : ''}${isCorrect ? ' correct-pick' : isIncorrect ? ' incorrect-pick' : ''}`
+                                                    : `missing-pick${isIncorrect ? ' incorrect-pick' : ''}`
+                                                }
+                                                title={
+                                                  isCorrect
+                                                    ? 'Correct pick'
+                                                    : isIncorrect
+                                                      ? selected
+                                                        ? 'Incorrect pick'
+                                                        : 'No pick submitted'
+                                                      : isOffset
+                                                        ? 'Upset · changed after publication and currently the league’s only pick for this team'
+                                                        : isWildPick
+                                                          ? 'Wild pick · selected by 20% or less of the league'
+                                                          : undefined
+                                                }
+                                              >
+                                                {selected ??
+                                                  (data.startedGames.includes(
+                                                    game.id,
+                                                  )
+                                                    ? 'No pick'
+                                                    : 'Not published')}
+                                                {(isOffset || isWildPick) && (
+                                                  <small>
+                                                    {isOffset
+                                                      ? 'UPSET'
+                                                      : 'WILD PICK'}
+                                                  </small>
+                                                )}
+                                                {isCorrect && (
+                                                  <CircleCheck
+                                                    className="pick-result-icon"
+                                                    size={13}
+                                                    aria-label="Correct pick"
+                                                  />
+                                                )}
+                                                {isIncorrect && (
+                                                  <CircleX
+                                                    className="pick-result-icon"
+                                                    size={13}
+                                                    aria-label={
+                                                      selected
+                                                        ? 'Incorrect pick'
+                                                        : 'No pick submitted'
+                                                    }
+                                                  />
+                                                )}
+                                              </span>
+                                            </TableCell>
+                                          );
+                                        })
+                                      ) : (
+                                        <TableCell
+                                          className="private-game"
+                                          colSpan={Math.max(
+                                            data.members.length,
+                                            1,
+                                          )}
+                                        >
+                                          Private until kickoff
+                                        </TableCell>
+                                      )}
+                                    </TableRow>
+                                  );
+                                })}
                               </TableBody>
                             </Table>
                           </div>
@@ -1771,7 +1796,9 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                             incorrect or missing picks in red. WILD marks a team
                             selected by 20% or less of the league for that
                             matchup. UPSET marks a unique pick changed after
-                            that matchup became public.
+                            that matchup became public. NO IMPACT marks a
+                            matchup where every member chose the same team, so
+                            its result cannot change the relative standings.
                           </p>
                         </>
                       ) : (
