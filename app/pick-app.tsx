@@ -295,6 +295,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const [remove, setRemove] = useState<Member | null>(null);
   const [installed, setInstalled] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [hideNoImpact, setHideNoImpact] = useState(false);
   const offset = useRef(0);
   const requestId = useRef(0);
   const swipeSurface = useRef<HTMLElement | null>(null);
@@ -402,6 +403,17 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', theme === 'dark' ? '#0f1b1c' : '#123e35');
   }, [theme]);
+  useEffect(() => {
+    if (!data?.profile.id || !data.league) {
+      setHideNoImpact(false);
+      return;
+    }
+    setHideNoImpact(
+      localStorage.getItem(
+        `mingo-hide-no-impact:${data.profile.id}:${data.league}`,
+      ) === 'true',
+    );
+  }, [data?.profile.id, data?.league]);
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('sunday-club-theme', next);
@@ -524,6 +536,10 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
       new Set(selections).size === 1
     );
   };
+  const unanimousGameCount = games.filter(isUnanimousGame).length;
+  const leaguePickGames = hideNoImpact
+    ? games.filter((game) => !isUnanimousGame(game))
+    : games;
   const marketPercentage = (game: Game, teamId: string) => {
     const odds = data?.marketOdds?.[game.id];
     if (!odds) return null;
@@ -1648,6 +1664,28 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                       )}
                       {data && hasRevealedPicks ? (
                         <>
+                          <label className="no-impact-filter">
+                            <span>
+                              <input
+                                type="checkbox"
+                                checked={hideNoImpact}
+                                onChange={(event) => {
+                                  const checked = event.currentTarget.checked;
+                                  setHideNoImpact(checked);
+                                  localStorage.setItem(
+                                    `mingo-hide-no-impact:${data.profile.id}:${data.league}`,
+                                    String(checked),
+                                  );
+                                }}
+                              />
+                              <span aria-hidden="true" />
+                            </span>
+                            <strong>Hide no-impact matches</strong>
+                            <small>
+                              {unanimousGameCount}{' '}
+                              {unanimousGameCount === 1 ? 'match' : 'matches'}
+                            </small>
+                          </label>
                           <div className="picks-table-scroll">
                             <Table>
                               <TableHeader>
@@ -1661,7 +1699,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {games.map((game) => {
+                                {leaguePickGames.map((game) => {
                                   const unanimous = isUnanimousGame(game);
                                   return (
                                     <TableRow
@@ -1783,6 +1821,12 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                               </TableBody>
                             </Table>
                           </div>
+                          {hideNoImpact && leaguePickGames.length === 0 && (
+                            <p className="no-impact-empty">
+                              Every revealed matchup has the same pick from all
+                              members.
+                            </p>
+                          )}
                           <p className="wild-pick-note">
                             Completed games show correct picks in green and
                             incorrect or missing picks in red. WILD marks a team
