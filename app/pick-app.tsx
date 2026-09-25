@@ -37,6 +37,11 @@ import {
   Swords,
   CircleCheck,
   CircleX,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  Target,
+  Sparkles,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -89,6 +94,8 @@ type Standing = Member & {
   gutsMonthly: number;
   gutsSeason: number;
   nostradamus: boolean;
+  throughWeekSeason: number;
+  previousSeason: number;
 };
 type MemberCompletion = Member & { picked: number };
 type BadgeKey =
@@ -248,6 +255,7 @@ type State = {
   >;
   members: Member[];
   standings: Standing[];
+  remainingSeasonGames: number;
   scheduleOfficial: boolean;
   superBowlPick: string | null;
   outrightPicks: Record<string, string>;
@@ -565,6 +573,87 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
           ? b.monthly - a.monthly
           : b.season - a.season) || a.name.localeCompare(b.name),
   );
+  const seasonRace = [...(data?.standings ?? [])].sort(
+    (a, b) => b.season - a.season || a.name.localeCompare(b.name),
+  );
+  const movementLeaderboard = [...(data?.standings ?? [])].sort(
+    (a, b) =>
+      b.throughWeekSeason - a.throughWeekSeason || a.name.localeCompare(b.name),
+  );
+  const previousMovementLeaderboard = [...(data?.standings ?? [])].sort(
+    (a, b) =>
+      b.previousSeason - a.previousSeason || a.name.localeCompare(b.name),
+  );
+  const tiedRank = (
+    players: Standing[],
+    score: number,
+    key: 'throughWeekSeason' | 'previousSeason',
+  ) => players.findIndex((player) => player[key] === score) + 1;
+  const seasonMovement = (player: Standing) => {
+    if (week <= 1) return 0;
+    const currentRank = tiedRank(
+      movementLeaderboard,
+      player.throughWeekSeason,
+      'throughWeekSeason',
+    );
+    const previousRank = tiedRank(
+      previousMovementLeaderboard,
+      player.previousSeason,
+      'previousSeason',
+    );
+    return previousRank - currentRank;
+  };
+  const selectedWeekFinished =
+    games.some((game) => game.status !== 'cancelled') &&
+    games.every((game) => ['final', 'cancelled'].includes(game.status));
+  const weeklyWinnerScore = Math.max(
+    0,
+    ...(data?.standings ?? []).map((standing) => standing.weekly),
+  );
+  const weeklyWinnerNames = (data?.standings ?? [])
+    .filter((standing) => standing.weekly === weeklyWinnerScore)
+    .map((standing) => standing.name);
+  const biggestCall = games
+    .filter((game) => game.status === 'final' && game.winner)
+    .map((game) => {
+      const counts = data?.pickCounts[game.id] ?? {};
+      const total = Object.values(counts).reduce(
+        (sum, votes) => sum + votes,
+        0,
+      );
+      const winnerCount = counts[game.winner!] ?? 0;
+      const callers = (data?.members ?? [])
+        .filter(
+          (member) =>
+            data?.publishedPicks[member.id]?.[game.id] === game.winner,
+        )
+        .map((member) => member.name);
+      return {
+        game,
+        percentage: total ? Math.round((winnerCount / total) * 100) : 100,
+        callers,
+      };
+    })
+    .filter((call) => call.callers.length)
+    .sort(
+      (a, b) => a.percentage - b.percentage || a.game.kickoff - b.game.kickoff,
+    )[0];
+  const missedWeekPicks = games
+    .filter((game) => game.status !== 'cancelled')
+    .reduce(
+      (total, game) =>
+        total +
+        (data?.members ?? []).filter(
+          (member) => !data?.publishedPicks[member.id]?.[game.id],
+        ).length,
+      0,
+    );
+  const biggestMover = [...(data?.standings ?? [])]
+    .map((standing) => ({
+      name: standing.name,
+      movement: seasonMovement(standing),
+    }))
+    .sort((a, b) => b.movement - a.movement || a.name.localeCompare(b.name))[0];
   const periodCount = (
     standing: Standing,
     kind:
@@ -1466,13 +1555,44 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                               return (
                                 <TableRow key={p.id}>
                                   <TableCell>
-                                    <span
-                                      className={
-                                        rank === 1 ? 'rank first' : 'rank'
-                                      }
-                                    >
-                                      {rank === 1 ? <Trophy size={17} /> : rank}
-                                    </span>
+                                    <div className="rank-movement-cell">
+                                      <span
+                                        className={
+                                          rank === 1 ? 'rank first' : 'rank'
+                                        }
+                                      >
+                                        {rank === 1 ? (
+                                          <Trophy size={17} />
+                                        ) : (
+                                          rank
+                                        )}
+                                      </span>
+                                      {week > 1 &&
+                                        (seasonMovement(p) > 0 ? (
+                                          <span
+                                            className="rank-change up"
+                                            title={`Up ${seasonMovement(p)} ${seasonMovement(p) === 1 ? 'place' : 'places'} in the season standings during Week ${week}`}
+                                          >
+                                            <ArrowUp size={11} />
+                                            {seasonMovement(p)}
+                                          </span>
+                                        ) : seasonMovement(p) < 0 ? (
+                                          <span
+                                            className="rank-change down"
+                                            title={`Down ${Math.abs(seasonMovement(p))} ${Math.abs(seasonMovement(p)) === 1 ? 'place' : 'places'} in the season standings during Week ${week}`}
+                                          >
+                                            <ArrowDown size={11} />
+                                            {Math.abs(seasonMovement(p))}
+                                          </span>
+                                        ) : (
+                                          <span
+                                            className="rank-change even"
+                                            title={`No season rank change during Week ${week}`}
+                                          >
+                                            <Minus size={11} />
+                                          </span>
+                                        ))}
+                                    </div>
                                   </TableCell>
                                   <TableCell>
                                     <div className="standing-player">
@@ -1567,6 +1687,107 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                             Find your league
                           </button>
                         </div>
+                      )}
+                      {selectedWeekFinished && leaderboard.length > 0 && (
+                        <section className="weekly-recap">
+                          <div className="standings-feature-heading">
+                            <span>
+                              <Sparkles size={16} />
+                              Week {week} recap
+                            </span>
+                            <small>Final</small>
+                          </div>
+                          <div className="weekly-recap-grid">
+                            <article>
+                              <small>Week winner</small>
+                              <strong>{weeklyWinnerNames.join(' & ')}</strong>
+                              <span>{weeklyWinnerScore} correct picks</span>
+                            </article>
+                            <article>
+                              <small>Best call</small>
+                              <strong>
+                                {biggestCall
+                                  ? `${biggestCall.game.winner} over ${biggestCall.game.winner === biggestCall.game.away ? biggestCall.game.home : biggestCall.game.away}`
+                                  : 'No winning call'}
+                              </strong>
+                              <span>
+                                {biggestCall
+                                  ? `${biggestCall.callers.join(', ')} · ${biggestCall.percentage}% backed it`
+                                  : 'No player selected a winner'}
+                              </span>
+                            </article>
+                            <article>
+                              <small>Biggest mover</small>
+                              <strong>
+                                {(biggestMover?.movement ?? 0) > 0
+                                  ? biggestMover.name
+                                  : 'Standings held'}
+                              </strong>
+                              <span>
+                                {(biggestMover?.movement ?? 0) > 0
+                                  ? `Up ${biggestMover.movement} ${biggestMover.movement === 1 ? 'place' : 'places'}`
+                                  : 'No one moved up this week'}
+                              </span>
+                            </article>
+                            <article>
+                              <small>Missed picks</small>
+                              <strong>{missedWeekPicks}</strong>
+                              <span>
+                                {missedWeekPicks === 1
+                                  ? 'pick was not submitted'
+                                  : 'picks were not submitted'}
+                              </span>
+                            </article>
+                          </div>
+                        </section>
+                      )}
+                      {seasonRace.length > 0 && (
+                        <section className="playoff-race">
+                          <div className="standings-feature-heading">
+                            <span>
+                              <Target size={16} />
+                              Playoff race
+                            </span>
+                            <small>
+                              {data?.remainingSeasonGames ?? 0} games left
+                            </small>
+                          </div>
+                          <div className="playoff-race-list">
+                            {seasonRace.map((player, index) => {
+                              const leaderScore = seasonRace[0]?.season ?? 0;
+                              const behind = leaderScore - player.season;
+                              const alive =
+                                behind <= (data?.remainingSeasonGames ?? 0);
+                              return (
+                                <div
+                                  className="playoff-race-row"
+                                  key={player.id}
+                                >
+                                  <span className="playoff-position">
+                                    {index + 1}
+                                  </span>
+                                  <strong>{player.name}</strong>
+                                  <span className="playoff-gap">
+                                    {behind === 0 ? 'Leader' : `${behind} back`}
+                                  </span>
+                                  <span
+                                    className={`playoff-status ${alive ? 'alive' : 'out'}`}
+                                  >
+                                    {behind === 0
+                                      ? 'Front runner'
+                                      : alive
+                                        ? 'In the race'
+                                        : 'Eliminated'}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p>
+                            A player remains in the race while the points behind
+                            first do not exceed the unresolved games remaining.
+                          </p>
+                        </section>
                       )}
                       <p className="footnote">
                         1 point per correct winner. Ties and cancelled games

@@ -148,6 +148,7 @@ export async function GET(req: Request) {
         totalGames: games.length,
         marketOdds: await getMarketOdds(week, games),
         standings: [],
+        remainingSeasonGames: 0,
         members: [],
         superBowlPick: null,
         outrightPicks: {},
@@ -344,6 +345,24 @@ export async function GET(req: Request) {
         .bind(week, monthStart, monthEnd, league)
         .all()
     ).results;
+    const rankHistoryRows = (
+      await db
+        .prepare(
+          `SELECT p.id,
+          COALESCE(SUM(CASE WHEN g.week<=? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) throughWeekSeason,
+          COALESCE(SUM(CASE WHEN g.week<? AND CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END='final' AND k.team=CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END THEN 1 ELSE 0 END),0) previousSeason
+          FROM members m JOIN profiles p ON p.id=m.user LEFT JOIN picks k ON k.league=m.league AND k.user=m.user LEFT JOIN games g ON g.id=k.game LEFT JOIN results r ON r.league=m.league AND r.game=g.id WHERE m.league=? GROUP BY p.id`,
+        )
+        .bind(week, week, league)
+        .all<{
+          id: string;
+          throughWeekSeason: number;
+          previousSeason: number;
+        }>()
+    ).results;
+    const rankHistoryByPlayer = new Map(
+      rankHistoryRows.map((row) => [row.id, row]),
+    );
     const badgeRows = (
       await db
         .prepare(
@@ -405,6 +424,9 @@ export async function GET(req: Request) {
           winner: string | null;
         }>()
     ).results;
+    const remainingSeasonGames = resolvedGames.filter(
+      (game) => game.status !== 'final' && game.status !== 'cancelled',
+    ).length;
     const storedOdds = (
       await db
         .prepare(
@@ -567,6 +589,9 @@ export async function GET(req: Request) {
       return {
         ...standing,
         ...stats,
+        throughWeekSeason:
+          rankHistoryByPlayer.get(player.id)?.throughWeekSeason ?? 0,
+        previousSeason: rankHistoryByPlayer.get(player.id)?.previousSeason ?? 0,
         season:
           Number((standing as { season: number }).season) +
           (superBowlWinner && seasonPrediction?.team === superBowlWinner
@@ -600,6 +625,7 @@ export async function GET(req: Request) {
       totalGames: games.length,
       marketOdds,
       standings: standingsWithBadges,
+      remainingSeasonGames,
       members,
       superBowlPick: superBowlPick?.team ?? null,
       outrightPicks: Object.fromEntries(
