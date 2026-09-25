@@ -256,6 +256,7 @@ type State = {
   members: Member[];
   standings: Standing[];
   remainingSeasonGames: number;
+  remainingGames: Record<'weekly' | 'monthly' | 'season', number>;
   scheduleOfficial: boolean;
   superBowlPick: string | null;
   outrightPicks: Record<string, string>;
@@ -565,6 +566,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
           timeZoneName: 'short',
         })
       : 'Loading kickoff…';
+  const month = Math.ceil(week / 4);
   const leaderboard = [...(data?.standings ?? [])].sort(
     (a, b) =>
       (period === 'weekly'
@@ -573,9 +575,24 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
           ? b.monthly - a.monthly
           : b.season - a.season) || a.name.localeCompare(b.name),
   );
-  const seasonRace = [...(data?.standings ?? [])].sort(
-    (a, b) => b.season - a.season || a.name.localeCompare(b.name),
+  const periodScore = (standing: Standing) =>
+    period === 'weekly'
+      ? standing.weekly
+      : period === 'monthly'
+        ? standing.monthly
+        : standing.season;
+  const raceLeaderboard = [...(data?.standings ?? [])].sort(
+    (a, b) => periodScore(b) - periodScore(a) || a.name.localeCompare(b.name),
   );
+  const raceRemainingGames =
+    data?.remainingGames?.[period as 'weekly' | 'monthly' | 'season'] ??
+    (period === 'season' ? (data?.remainingSeasonGames ?? 0) : 0);
+  const racePeriodLabel =
+    period === 'weekly'
+      ? `Week ${week}`
+      : period === 'monthly'
+        ? `Month ${month}`
+        : 'Full season';
   const movementLeaderboard = [...(data?.standings ?? [])].sort(
     (a, b) =>
       b.throughWeekSeason - a.throughWeekSeason || a.name.localeCompare(b.name),
@@ -789,7 +806,6 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
       visibleBadgeKeys.delete(badge);
     }
   }
-  const month = Math.ceil(week / 4);
   const startTabSwipe = (event: TouchEvent<HTMLElement>) => {
     if (
       swipeAnimating.current ||
@@ -1741,30 +1757,34 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                           </div>
                         </section>
                       )}
-                      {seasonRace.length > 0 && (
+                      {raceLeaderboard.length > 0 && (
                         <section className="playoff-race">
                           <div className="standings-feature-heading">
                             <span>
                               <Target size={16} />
-                              Playoff race
+                              Playoff race · {racePeriodLabel}
                             </span>
-                            <small>
-                              {data?.remainingSeasonGames ?? 0} games left
-                            </small>
+                            <small>{raceRemainingGames} games left</small>
                           </div>
                           <div className="playoff-race-list">
-                            {seasonRace.map((player, index) => {
-                              const leaderScore = seasonRace[0]?.season ?? 0;
-                              const behind = leaderScore - player.season;
-                              const alive =
-                                behind <= (data?.remainingSeasonGames ?? 0);
+                            {raceLeaderboard.map((player) => {
+                              const leaderScore = raceLeaderboard[0]
+                                ? periodScore(raceLeaderboard[0])
+                                : 0;
+                              const playerScore = periodScore(player);
+                              const behind = leaderScore - playerScore;
+                              const alive = behind <= raceRemainingGames;
+                              const raceRank =
+                                raceLeaderboard.findIndex(
+                                  (entry) => periodScore(entry) === playerScore,
+                                ) + 1;
                               return (
                                 <div
                                   className="playoff-race-row"
                                   key={player.id}
                                 >
                                   <span className="playoff-position">
-                                    {index + 1}
+                                    {raceRank}
                                   </span>
                                   <strong>{player.name}</strong>
                                   <span className="playoff-gap">
@@ -1785,7 +1805,8 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                           </div>
                           <p>
                             A player remains in the race while the points behind
-                            first do not exceed the unresolved games remaining.
+                            first do not exceed the unresolved games remaining
+                            in {racePeriodLabel.toLowerCase()}.
                           </p>
                         </section>
                       )}

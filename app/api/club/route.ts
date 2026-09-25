@@ -149,6 +149,7 @@ export async function GET(req: Request) {
         marketOdds: await getMarketOdds(week, games),
         standings: [],
         remainingSeasonGames: 0,
+        remainingGames: { weekly: 0, monthly: 0, season: 0 },
         members: [],
         superBowlPick: null,
         outrightPicks: {},
@@ -427,6 +428,22 @@ export async function GET(req: Request) {
     const remainingSeasonGames = resolvedGames.filter(
       (game) => game.status !== 'final' && game.status !== 'cancelled',
     ).length;
+    const remainingGames = {
+      weekly: resolvedGames.filter(
+        (game) =>
+          game.week === week &&
+          game.status !== 'final' &&
+          game.status !== 'cancelled',
+      ).length,
+      monthly: resolvedGames.filter(
+        (game) =>
+          game.week >= monthStart &&
+          game.week <= monthEnd &&
+          game.status !== 'final' &&
+          game.status !== 'cancelled',
+      ).length,
+      season: remainingSeasonGames,
+    };
     const storedOdds = (
       await db
         .prepare(
@@ -626,6 +643,7 @@ export async function GET(req: Request) {
       marketOdds,
       standings: standingsWithBadges,
       remainingSeasonGames,
+      remainingGames,
       members,
       superBowlPick: superBowlPick?.team ?? null,
       outrightPicks: Object.fromEntries(
