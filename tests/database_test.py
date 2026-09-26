@@ -86,6 +86,16 @@ class Rules(unittest.TestCase):
   self.db.execute("INSERT INTO outright_picks VALUES('l','a','afc_west','KC')")
   self.db.execute("INSERT INTO outright_picks VALUES('l','a','afc_west','DEN') ON CONFLICT(league,user,category) DO UPDATE SET team=excluded.team")
   self.assertEqual(self.db.execute("SELECT team FROM outright_picks").fetchone()['team'],'DEN')
+ def test_sponsor_and_survivor_defaults(self):
+  settings=self.db.execute("SELECT sponsor_enabled,survivor_enabled FROM leagues WHERE id='l'").fetchone()
+  self.assertEqual(tuple(settings),(0,0))
+  self.db.execute("UPDATE leagues SET sponsor_enabled=1,sponsor_name='Local Grill',survivor_enabled=1 WHERE id='l'")
+  settings=self.db.execute("SELECT sponsor_enabled,sponsor_name,survivor_enabled FROM leagues WHERE id='l'").fetchone()
+  self.assertEqual(tuple(settings),(1,'Local Grill',1))
+ def test_survivor_team_cannot_be_reused(self):
+  self.db.execute("INSERT INTO survivor_picks VALUES('l','a',1,'KC',?)",(self.now,))
+  with self.assertRaises(sqlite3.IntegrityError):
+   self.db.execute("INSERT INTO survivor_picks VALUES('l','a',2,'KC',?)",(self.now,))
  def test_picks_reveal_at_kickoff_or_partial_snapshot(self):
   self.db.executemany('INSERT INTO picks VALUES(?,?,?,?)',[('l','a','past','KC'),('l','a','future','BUF')])
   automatic=[r['game'] for r in self.db.execute(reveal_sql,('l',1,self.now,'l',1,self.now)).fetchall()]

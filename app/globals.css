@@ -1281,6 +1281,214 @@ button.outline,
   font-size: 9px;
   line-height: 1.45;
 }
+.sponsor-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #d9c982;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fffdf3, #f6f1d8);
+  box-shadow: 0 8px 24px rgb(75 65 28 / 8%);
+}
+.sponsor-card > span {
+  color: #8a762a;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+.sponsor-card img {
+  width: auto;
+  max-width: 150px;
+  height: 48px;
+  object-fit: contain;
+  object-position: left center;
+}
+.sponsor-card strong {
+  font-size: 17px;
+}
+.sponsor-card p {
+  margin: 0;
+  color: #665f43;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.sponsor-card small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #67591e;
+  font-weight: 800;
+}
+.survivor-page {
+  display: grid;
+  gap: 16px;
+}
+.survivor-hero {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 12px;
+  color: white;
+  background: linear-gradient(135deg, #123e35, #1e6e58);
+}
+.survivor-hero h2,
+.survivor-hero p {
+  margin: 5px 0 0;
+}
+.survivor-hero p {
+  max-width: 520px;
+  color: #d2ebe1;
+  line-height: 1.45;
+}
+.survivor-life {
+  padding: 7px 9px;
+  border-radius: 6px;
+  color: #174d3c;
+  background: #dafa69;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.survivor-life.out {
+  color: #7d302b;
+  background: #ffd8d4;
+}
+.survivor-picker-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.survivor-picker-heading h2,
+.survivor-picker-heading p {
+  margin: 0;
+}
+.survivor-picker-heading p {
+  margin-top: 4px;
+  color: #718079;
+  font-size: 12px;
+}
+.survivor-team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.survivor-team {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  min-height: 112px;
+  padding: 10px 6px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--foreground);
+  background: white;
+  text-align: center;
+}
+.survivor-team img {
+  object-fit: contain;
+}
+.survivor-team strong {
+  font-size: 11px;
+}
+.survivor-team small {
+  color: #74817c;
+  font-size: 8px;
+}
+.survivor-team.selected {
+  border: 2px solid #16805f;
+  background: #e7f5ee;
+}
+.survivor-team:disabled:not(.selected) {
+  opacity: 0.42;
+}
+.survivor-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--border);
+}
+.survivor-player:last-child {
+  border-bottom: 0;
+}
+.survivor-player > span {
+  padding: 4px 6px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.survivor-player > span.alive {
+  color: #17623f;
+  background: #dff2e7;
+}
+.survivor-player > span.out {
+  color: #8a3f38;
+  background: #f4dfdc;
+}
+.sponsor-settings-form,
+.survivor-settings-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.settings-heading,
+.survivor-settings-form > div:first-child {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.settings-heading small,
+.survivor-settings-form small {
+  display: block;
+  margin-top: 3px;
+  color: #718079;
+  line-height: 1.4;
+}
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.sponsor-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.sponsor-settings-grid label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 750;
+}
+.sponsor-settings-grid .wide {
+  grid-column: 1 / -1;
+}
+.sponsor-settings-grid input,
+.sponsor-settings-grid textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px;
+  color: var(--foreground);
+  background: white;
+  font: inherit;
+}
 .player-tag {
   display: inline-flex;
   padding: 4px 6px;
@@ -1981,6 +2189,29 @@ button.outline,
   color: #c7aaa1;
   background: #3c302d;
 }
+[data-theme='dark'] .sponsor-card {
+  border-color: #6f6330;
+  background: linear-gradient(145deg, #2e2b1d, #25281e);
+}
+[data-theme='dark'] .sponsor-card p {
+  color: #d1c9a5;
+}
+[data-theme='dark'] .survivor-team,
+[data-theme='dark'] .sponsor-settings-grid input,
+[data-theme='dark'] .sponsor-settings-grid textarea {
+  background: #1b292b;
+}
+[data-theme='dark'] .survivor-team.selected {
+  background: #193b31;
+}
+[data-theme='dark'] .survivor-player > span.alive {
+  color: #96e4bd;
+  background: #1c4936;
+}
+[data-theme='dark'] .survivor-player > span.out {
+  color: #e4aaa4;
+  background: #472a27;
+}
 button {
   min-height: 40px;
 }
@@ -2020,6 +2251,20 @@ button {
   }
   .weekly-recap-grid {
     grid-template-columns: 1fr;
+  }
+  .survivor-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .survivor-hero,
+  .settings-heading,
+  .survivor-settings-form > div:first-child {
+    flex-direction: column;
+  }
+  .sponsor-settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .sponsor-settings-grid .wide {
+    grid-column: auto;
   }
   .playoff-race-row {
     grid-template-columns: 24px minmax(0, 1fr) auto;

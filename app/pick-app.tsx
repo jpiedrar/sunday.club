@@ -98,6 +98,21 @@ type Standing = Member & {
   previousSeason: number;
 };
 type MemberCompletion = Member & { picked: number };
+type Sponsor = {
+  enabled: boolean;
+  name: string;
+  message: string;
+  logoUrl: string;
+  linkUrl: string;
+  startsAt: number | null;
+  endsAt: number | null;
+};
+type SurvivorStanding = {
+  id: string;
+  name: string;
+  alive: boolean;
+  eliminatedWeek: number | null;
+};
 type BadgeKey =
   | 'vende-patrias'
   | 'wild-picker'
@@ -260,6 +275,11 @@ type State = {
   scheduleOfficial: boolean;
   superBowlPick: string | null;
   outrightPicks: Record<string, string>;
+  sponsor: Sponsor | null;
+  survivorEnabled: boolean;
+  survivorPicks: Record<number, string>;
+  survivorUsedTeams: string[];
+  survivorStandings: SurvivorStanding[];
   superBowlWinner: string | null;
   superBowlLockWeek: number;
   superBowlPoints: number;
@@ -272,6 +292,7 @@ const teamChoices = [...teams].sort((a, b) =>
 );
 const nav = [
   ['picks', 'Picks', Zap],
+  ['survivor', 'Survivor', ShieldCheck],
   ['outrights', 'Outrights', Crown],
   ['standings', 'Standings', Trophy],
   ['league-picks', 'League Picks', Eye],
@@ -466,6 +487,12 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   }
   const league = data?.leagues.find((l) => l.id === data.league);
   const owner = !!league && league.owner === data?.profile.id;
+  const appNav = nav.filter(
+    ([id]) => id !== 'survivor' || data?.survivorEnabled,
+  );
+  useEffect(() => {
+    if (view === 'survivor' && data && !data.survivorEnabled) setView('picks');
+  }, [data, view]);
   const badgeEnabled = (badge: BadgeKey) =>
     data?.badgeSettings[badge] !== false;
   const standingsBadge = (badge: BadgeKey, count?: number) => {
@@ -549,6 +576,24 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
   const leaguePickGames = hideNoImpact
     ? games.filter((game) => !isUnanimousGame(game))
     : games;
+  const survivorPick = data?.survivorPicks?.[week] ?? null;
+  const survivorPlayer = data?.survivorStandings.find(
+    (player) => player.id === data.profile.id,
+  );
+  const survivorTeams = [
+    ...new Set(games.flatMap((game) => [game.away, game.home])),
+  ].sort((a, b) => team(a)[2].localeCompare(team(b)[2]));
+  const survivorPickGame = survivorPick
+    ? games.find((game) => [game.away, game.home].includes(survivorPick))
+    : null;
+  const survivorLocked = Boolean(
+    survivorPickGame && survivorPickGame.kickoff <= now,
+  );
+  const sponsorActive = Boolean(
+    data?.sponsor?.enabled &&
+    (!data.sponsor.startsAt || data.sponsor.startsAt <= now) &&
+    (!data.sponsor.endsAt || data.sponsor.endsAt >= now),
+  );
   const marketPercentage = (game: Game, teamId: string) => {
     const odds = data?.marketOdds?.[game.id];
     if (!odds) return null;
@@ -566,6 +611,13 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
           timeZoneName: 'short',
         })
       : 'Loading kickoff…';
+  const localDateTime = (value: number | null | undefined) => {
+    if (!value) return '';
+    const dateValue = new Date(value);
+    return new Date(value - dateValue.getTimezoneOffset() * 60_000)
+      .toISOString()
+      .slice(0, 16);
+  };
   const month = Math.ceil(week / 4);
   const leaderboard = [...(data?.standings ?? [])].sort(
     (a, b) =>
@@ -838,10 +890,10 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     if (Math.abs(horizontal) < 6 || Math.abs(horizontal) <= Math.abs(vertical))
       return;
     event.preventDefault();
-    const currentIndex = nav.findIndex(([id]) => id === view);
+    const currentIndex = appNav.findIndex(([id]) => id === view);
     const atEdge =
       (currentIndex === 0 && horizontal > 0) ||
-      (currentIndex === nav.length - 1 && horizontal < 0);
+      (currentIndex === appNav.length - 1 && horizontal < 0);
     const movement = atEdge ? horizontal * 0.22 : horizontal;
     surface.style.transform = `translate3d(${movement}px, 0, 0)`;
     surface.style.opacity = String(
@@ -856,14 +908,14 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     const touch = event.changedTouches[0];
     const horizontal = touch.clientX - start.x;
     const vertical = touch.clientY - start.y;
-    const currentIndex = nav.findIndex(([id]) => id === view);
+    const currentIndex = appNav.findIndex(([id]) => id === view);
     const nextIndex = currentIndex + (horizontal < 0 ? 1 : -1);
     const shouldSnapBack =
       Math.abs(horizontal) < 70 ||
       Math.abs(horizontal) < Math.abs(vertical) * 1.35 ||
       currentIndex < 0 ||
       nextIndex < 0 ||
-      nextIndex >= nav.length;
+      nextIndex >= appNav.length;
     surface.style.transition =
       'transform 180ms cubic-bezier(.22,.8,.32,1), opacity 180ms ease';
     if (shouldSnapBack) {
@@ -880,7 +932,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
     surface.style.transform = `translate3d(${direction * window.innerWidth}px, 0, 0)`;
     surface.style.opacity = '0.55';
     swipeTimer.current = setTimeout(() => {
-      setView(nav[nextIndex][0]);
+      setView(appNav[nextIndex][0]);
       setNotice('');
       window.scrollTo({ top: 0, behavior: 'auto' });
       surface.style.transition = 'none';
@@ -1024,28 +1076,32 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
             <h1>
               {view === 'picks'
                 ? 'Make your picks.'
-                : view === 'outrights'
-                  ? 'Call the champions.'
-                  : view === 'standings'
-                    ? 'The bragging board.'
-                    : view === 'league-picks'
-                      ? 'See every call.'
-                      : view === 'leagues'
-                        ? 'Find your crew.'
-                        : 'Your corner.'}
+                : view === 'survivor'
+                  ? 'Survive the week.'
+                  : view === 'outrights'
+                    ? 'Call the champions.'
+                    : view === 'standings'
+                      ? 'The bragging board.'
+                      : view === 'league-picks'
+                        ? 'See every call.'
+                        : view === 'leagues'
+                          ? 'Find your crew.'
+                          : 'Your corner.'}
             </h1>
             <p>
               {view === 'picks'
                 ? 'A little football. A lot of bragging rights.'
-                : view === 'outrights'
-                  ? 'Choose every division winner and your Super Bowl champion.'
-                  : view === 'standings'
-                    ? 'One correct winner. One step up the table.'
-                    : view === 'league-picks'
-                      ? 'Picks unlock game by game at kickoff.'
-                      : view === 'leagues'
-                        ? 'Private leagues. Friendly rivalries.'
-                        : 'Make yourself at home.'}
+                : view === 'survivor'
+                  ? 'One team. One life. No repeats.'
+                  : view === 'outrights'
+                    ? 'Choose every division winner and your Super Bowl champion.'
+                    : view === 'standings'
+                      ? 'One correct winner. One step up the table.'
+                      : view === 'league-picks'
+                        ? 'Picks unlock game by game at kickoff.'
+                        : view === 'leagues'
+                          ? 'Private leagues. Friendly rivalries.'
+                          : 'Make yourself at home.'}
             </p>
           </div>
           <button
@@ -1095,6 +1151,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
           </div>
         )}
         {view === 'picks' ||
+        view === 'survivor' ||
         view === 'outrights' ||
         view === 'standings' ||
         view === 'league-picks' ? (
@@ -1122,7 +1179,133 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                   </button>
                 </div>
               )}
-              {view === 'outrights' ? (
+              {view === 'survivor' ? (
+                <div className="survivor-page">
+                  <section className="survivor-hero">
+                    <div>
+                      <span className="eyebrow">WEEK {week}</span>
+                      <h2>Choose one winner.</h2>
+                      <p>
+                        Win and advance. Lose or miss a completed week and your
+                        run ends. Every team can be used only once.
+                      </p>
+                    </div>
+                    <span
+                      className={`survivor-life ${survivorPlayer?.alive === false ? 'out' : ''}`}
+                    >
+                      {survivorPlayer?.alive === false
+                        ? `Eliminated · Week ${survivorPlayer.eliminatedWeek}`
+                        : 'Still alive'}
+                    </span>
+                  </section>
+                  <section className="panel survivor-picker">
+                    <div className="survivor-picker-heading">
+                      <div>
+                        <h2>Your Week {week} team</h2>
+                        <p>
+                          Your selection locks when that team’s game kicks off.
+                        </p>
+                      </div>
+                      {survivorPick && !survivorLocked && (
+                        <button
+                          className="text-button danger"
+                          disabled={busy}
+                          onClick={() =>
+                            mutate(
+                              { action: 'survivor-unpick', week },
+                              `Week ${week} Survivor pick cleared.`,
+                            )
+                          }
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div className="survivor-team-grid">
+                      {survivorTeams.map((teamId) => {
+                        const used =
+                          data?.survivorUsedTeams.includes(teamId) &&
+                          survivorPick !== teamId;
+                        const game = games.find((item) =>
+                          [item.away, item.home].includes(teamId),
+                        );
+                        const locked =
+                          !game ||
+                          game.kickoff <= now ||
+                          game.status !== 'scheduled';
+                        const selected = survivorPick === teamId;
+                        return (
+                          <button
+                            className={`survivor-team${selected ? ' selected' : ''}`}
+                            key={teamId}
+                            disabled={
+                              busy ||
+                              used ||
+                              locked ||
+                              survivorPlayer?.alive === false
+                            }
+                            onClick={() =>
+                              mutate(
+                                {
+                                  action: 'survivor-pick',
+                                  week,
+                                  team: teamId,
+                                },
+                                `${team(teamId)[2]} selected for Survivor Week ${week}.`,
+                              )
+                            }
+                          >
+                            <img
+                              src={`/team-logos/${teamId}.png`}
+                              alt=""
+                              width="42"
+                              height="42"
+                            />
+                            <strong>{team(teamId)[2]}</strong>
+                            <small>
+                              {selected
+                                ? survivorLocked
+                                  ? 'Locked'
+                                  : 'Selected'
+                                : used
+                                  ? 'Already used'
+                                  : locked
+                                    ? 'Locked'
+                                    : game
+                                      ? `${game.away} @ ${game.home}`
+                                      : ''}
+                            </small>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                  <section className="panel survivor-board">
+                    <div className="standings-feature-heading">
+                      <span>
+                        <ShieldCheck size={16} />
+                        Survivor board
+                      </span>
+                      <small>
+                        {data?.survivorStandings.filter(
+                          (player) => player.alive,
+                        ).length ?? 0}{' '}
+                        alive
+                      </small>
+                    </div>
+                    {data?.survivorStandings.map((player) => (
+                      <div className="survivor-player" key={player.id}>
+                        <strong>{player.name}</strong>
+                        <span className={player.alive ? 'alive' : 'out'}>
+                          {player.alive
+                            ? 'Alive'
+                            : `Out · Week ${player.eliminatedWeek}`}
+                        </span>
+                      </div>
+                    ))}
+                  </section>
+                </div>
+              ) : view === 'outrights' ? (
                 <div className="outrights-page">
                   <section className="outrights-intro">
                     <div>
@@ -2096,6 +2279,33 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
               )}
             </section>
             <aside>
+              {sponsorActive && data?.sponsor && (
+                <a
+                  className="sponsor-card"
+                  href={data.sponsor.linkUrl || undefined}
+                  target={data.sponsor.linkUrl ? '_blank' : undefined}
+                  rel={
+                    data.sponsor.linkUrl
+                      ? 'sponsored noopener noreferrer'
+                      : undefined
+                  }
+                >
+                  <span>Sponsored</span>
+                  {data.sponsor.logoUrl && (
+                    <img
+                      src={data.sponsor.logoUrl}
+                      alt={`${data.sponsor.name} logo`}
+                    />
+                  )}
+                  <strong>{data.sponsor.name}</strong>
+                  <p>{data.sponsor.message}</p>
+                  {data.sponsor.linkUrl && (
+                    <small>
+                      Visit sponsor <ArrowUpRight size={13} />
+                    </small>
+                  )}
+                </a>
+              )}
               <div className="club-card">
                 <div className="eyebrow">
                   {league ? 'YOUR PRIVATE LEAGUE' : 'BETTER WITH YOUR PEOPLE'}
@@ -2270,6 +2480,142 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
                       'name',
                       league.name,
                     )}
+                    <form
+                      className="sponsor-settings-form"
+                      key={`${league.id}-${JSON.stringify(data?.sponsor)}`}
+                      onSubmit={async (event) => {
+                        event.preventDefault();
+                        const form = new FormData(event.currentTarget);
+                        const starts = String(form.get('startsAt') ?? '');
+                        const ends = String(form.get('endsAt') ?? '');
+                        await mutate(
+                          {
+                            action: 'sponsor-settings',
+                            enabled: form.get('enabled') === 'on',
+                            name: String(form.get('name') ?? ''),
+                            message: String(form.get('message') ?? ''),
+                            logoUrl: String(form.get('logoUrl') ?? ''),
+                            linkUrl: String(form.get('linkUrl') ?? ''),
+                            startsAt: starts
+                              ? new Date(starts).getTime()
+                              : null,
+                            endsAt: ends ? new Date(ends).getTime() : null,
+                          },
+                          'Sponsor card settings updated.',
+                        );
+                      }}
+                    >
+                      <div className="settings-heading">
+                        <div>
+                          <strong>League sponsor</strong>
+                          <small>
+                            Show a clearly labeled sponsor card throughout the
+                            league.
+                          </small>
+                        </div>
+                        <label className="settings-toggle">
+                          <input
+                            type="checkbox"
+                            name="enabled"
+                            defaultChecked={data?.sponsor?.enabled}
+                          />
+                          Enabled
+                        </label>
+                      </div>
+                      <div className="sponsor-settings-grid">
+                        <label>
+                          Sponsor name
+                          <input
+                            name="name"
+                            maxLength={60}
+                            defaultValue={data?.sponsor?.name ?? ''}
+                          />
+                        </label>
+                        <label>
+                          Destination URL
+                          <input
+                            name="linkUrl"
+                            type="url"
+                            placeholder="https://"
+                            defaultValue={data?.sponsor?.linkUrl ?? ''}
+                          />
+                        </label>
+                        <label className="wide">
+                          Sponsor message
+                          <textarea
+                            name="message"
+                            maxLength={180}
+                            rows={3}
+                            defaultValue={data?.sponsor?.message ?? ''}
+                          />
+                        </label>
+                        <label className="wide">
+                          Logo URL
+                          <input
+                            name="logoUrl"
+                            type="url"
+                            placeholder="https://"
+                            defaultValue={data?.sponsor?.logoUrl ?? ''}
+                          />
+                        </label>
+                        <label>
+                          Starts (optional)
+                          <input
+                            name="startsAt"
+                            type="datetime-local"
+                            defaultValue={localDateTime(
+                              data?.sponsor?.startsAt,
+                            )}
+                          />
+                        </label>
+                        <label>
+                          Ends (optional)
+                          <input
+                            name="endsAt"
+                            type="datetime-local"
+                            defaultValue={localDateTime(data?.sponsor?.endsAt)}
+                          />
+                        </label>
+                      </div>
+                      <button className="primary" disabled={busy}>
+                        Save sponsor
+                      </button>
+                    </form>
+                    <form
+                      className="survivor-settings-form"
+                      key={`${league.id}-${data?.survivorEnabled}`}
+                      onSubmit={async (event) => {
+                        event.preventDefault();
+                        const enabled =
+                          new FormData(event.currentTarget).get('enabled') ===
+                          'on';
+                        await mutate(
+                          { action: 'survivor-settings', enabled },
+                          enabled
+                            ? 'Survivor is enabled for this league.'
+                            : 'Survivor is disabled. Existing picks are preserved.',
+                        );
+                      }}
+                    >
+                      <div>
+                        <strong>Survivor league</strong>
+                        <small>
+                          One team per week, no repeats. A loss or missed
+                          completed week eliminates the player.
+                        </small>
+                      </div>
+                      <label className="settings-toggle">
+                        <input
+                          type="checkbox"
+                          name="enabled"
+                          defaultChecked={data?.survivorEnabled}
+                        />
+                        Enable Survivor
+                      </label>
+                      <button className="primary" disabled={busy}>
+                        Save Survivor setting
+                      </button>
+                    </form>
                     <form
                       className="season-settings-form"
                       key={`${league.id}-${data?.superBowlLockWeek}-${data?.superBowlPoints}`}
@@ -2486,7 +2832,7 @@ export default function PickApp({ initialWeek }: { initialWeek: number }) {
         )}
       </main>
       <nav className="bottom" aria-label="Main navigation">
-        {nav.map(([id, label, Icon]) => (
+        {appNav.map(([id, label, Icon]) => (
           <button
             key={id}
             className={view === id ? 'active' : ''}

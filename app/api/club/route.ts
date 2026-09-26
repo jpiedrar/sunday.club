@@ -153,6 +153,11 @@ export async function GET(req: Request) {
         members: [],
         superBowlPick: null,
         outrightPicks: {},
+        sponsor: null,
+        survivorEnabled: false,
+        survivorPicks: {},
+        survivorUsedTeams: [],
+        survivorStandings: [],
         superBowlWinner: await syncSuperBowlWinner(db),
         superBowlLockWeek: 5,
         superBowlPoints: 0,
@@ -269,6 +274,14 @@ export async function GET(req: Request) {
         )
         .bind(league)
         .all<{ id: string; name: string }>()
+    ).results;
+    const survivorRows = (
+      await db
+        .prepare(
+          'SELECT user,week,team FROM survivor_picks WHERE league=? ORDER BY week',
+        )
+        .bind(league)
+        .all<{ user: string; week: number; team: string }>()
     ).results;
     const memberCompletion = (
       await db
@@ -444,6 +457,55 @@ export async function GET(req: Request) {
       ).length,
       season: remainingSeasonGames,
     };
+    const survivorStandings = members.map((member) => {
+      let eliminatedWeek: number | null = null;
+      for (let candidateWeek = 1; candidateWeek <= 18; candidateWeek++) {
+        const weekGames = resolvedGames.filter(
+          (game) => game.week === candidateWeek && game.status !== 'cancelled',
+        );
+        if (
+          !weekGames.length ||
+          weekGames.some((game) => game.status !== 'final')
+        )
+          continue;
+        const selection = survivorRows.find(
+          (pick) => pick.user === member.id && pick.week === candidateWeek,
+        );
+        const selectedGame = selection
+          ? weekGames.find((game) =>
+              [game.away, game.home].includes(selection.team),
+            )
+          : null;
+        if (
+          !selection ||
+          !selectedGame ||
+          selectedGame.winner !== selection.team
+        ) {
+          eliminatedWeek = candidateWeek;
+          break;
+        }
+      }
+      return {
+        id: member.id,
+        name: member.name,
+        alive: eliminatedWeek === null,
+        eliminatedWeek,
+      };
+    });
+    const ownSurvivorRows = survivorRows.filter(
+      (pick) => pick.user === u.userId,
+    );
+    const sponsor = selectedLeague
+      ? {
+          enabled: Boolean(selectedLeague.sponsor_enabled),
+          name: selectedLeague.sponsor_name ?? '',
+          message: selectedLeague.sponsor_message ?? '',
+          logoUrl: selectedLeague.sponsor_logo_url ?? '',
+          linkUrl: selectedLeague.sponsor_link_url ?? '',
+          startsAt: selectedLeague.sponsor_starts_at ?? null,
+          endsAt: selectedLeague.sponsor_ends_at ?? null,
+        }
+      : null;
     const storedOdds = (
       await db
         .prepare(
@@ -652,6 +714,13 @@ export async function GET(req: Request) {
           prediction.team,
         ]),
       ),
+      sponsor,
+      survivorEnabled: Boolean(selectedLeague?.survivor_enabled),
+      survivorPicks: Object.fromEntries(
+        ownSurvivorRows.map((pick) => [pick.week, pick.team]),
+      ),
+      survivorUsedTeams: ownSurvivorRows.map((pick) => pick.team),
+      survivorStandings,
       superBowlWinner,
       superBowlLockWeek: superBowlSettings.lockWeek,
       superBowlPoints: superBowlSettings.points,
@@ -683,6 +752,22 @@ export async function POST(req: Request) {
       const v = typeof body[k] === 'string' ? body[k].trim() : '';
       if (!v || v.length > max) throw new Problem(`Please enter a valid ${k}.`);
       return v;
+    };
+    const optional = (k: string, max = 200) => {
+      const value = typeof body[k] === 'string' ? body[k].trim() : '';
+      if (value.length > max) throw new Problem(`The ${k} is too long.`);
+      return value;
+    };
+    const webUrl = (k: string) => {
+      const value = optional(k, 500);
+      if (!value) return '';
+      try {
+        const parsed = new URL(value);
+        if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+        return parsed.toString();
+      } catch {
+        throw new Problem(`Please enter a valid ${k}.`);
+      }
     };
     await db
       .prepare('INSERT OR IGNORE INTO profiles(id,name) VALUES(?,?)')
@@ -753,8 +838,119 @@ export async function POST(req: Request) {
         'super-bowl-unpick',
         'outright-pick',
         'outright-unpick',
+        'survivor-pick',
+        'survivor-unpick',
       ].includes(String(action)),
     );
+    if (action === 'survivor-pick') {
+      const survivorLeague = await db
+        .prepare('SELECT survivor_enabled enabled FROM leagues WHERE id=?')
+        .bind(league)
+        .first<{ enabled: number }>();
+      if (!survivorLeague?.enabled)
+        throw new Problem('Survivor is not enabled for this league.', 409);
+      const survivorWeek = Number(body.week);
+      const team = str('team', 3).toUpperCase();
+      if (
+        !Number.isInteger(survivorWeek) ||
+        survivorWeek < 1 ||
+        survivorWeek > 18 ||
+        !validTeams.has(team)
+      )
+        throw new Problem('Choose a valid Survivor team and week.');
+      const priorRows = (
+        await db
+          .prepare(
+            'SELECT week,team FROM survivor_picks WHERE league=? AND user=? AND week<?',
+          )
+          .bind(league, u.userId, survivorWeek)
+          .all<{ week: number; team: string }>()
+      ).results;
+      const priorGames = (
+        await db
+          .prepare(
+            `SELECT g.week,g.away,g.home,CASE WHEN g.status IN ('final','cancelled') THEN g.status ELSE COALESCE(r.status,g.status) END status,CASE WHEN g.status='final' THEN g.winner WHEN g.status='cancelled' THEN NULL WHEN r.game IS NOT NULL THEN r.winner ELSE g.winner END winner FROM games g LEFT JOIN results r ON r.league=? AND r.game=g.id WHERE g.week<?`,
+          )
+          .bind(league, survivorWeek)
+          .all<{
+            week: number;
+            away: string;
+            home: string;
+            status: string;
+            winner: string | null;
+          }>()
+      ).results;
+      for (
+        let candidateWeek = 1;
+        candidateWeek < survivorWeek;
+        candidateWeek++
+      ) {
+        const weekGames = priorGames.filter(
+          (game) => game.week === candidateWeek && game.status !== 'cancelled',
+        );
+        if (
+          !weekGames.length ||
+          weekGames.some((game) => game.status !== 'final')
+        )
+          continue;
+        const selection = priorRows.find((pick) => pick.week === candidateWeek);
+        const selectedGame = selection
+          ? weekGames.find((game) =>
+              [game.away, game.home].includes(selection.team),
+            )
+          : null;
+        if (
+          !selection ||
+          !selectedGame ||
+          selectedGame.winner !== selection.team
+        )
+          throw new Problem(
+            `You were eliminated in Week ${candidateWeek}.`,
+            409,
+          );
+      }
+      const reused = await db
+        .prepare(
+          'SELECT week FROM survivor_picks WHERE league=? AND user=? AND team=? AND week<>?',
+        )
+        .bind(league, u.userId, team, survivorWeek)
+        .first<{ week: number }>();
+      if (reused)
+        throw new Problem(
+          `You already used ${team} in Week ${reused.week}.`,
+          409,
+        );
+      const result = await db
+        .prepare(
+          `INSERT INTO survivor_picks(league,user,week,team,created_at) SELECT ?,?,?,?,unixepoch('now')*1000 WHERE EXISTS(SELECT 1 FROM games g WHERE g.week=? AND ? IN (g.away,g.home) AND g.kickoff>unixepoch('now')*1000 AND g.status='scheduled' AND NOT EXISTS(SELECT 1 FROM results r WHERE r.league=? AND r.game=g.id AND r.status IN ('final','cancelled'))) ON CONFLICT(league,user,week) DO UPDATE SET team=excluded.team,created_at=excluded.created_at`,
+        )
+        .bind(league, u.userId, survivorWeek, team, survivorWeek, team, league)
+        .run();
+      if (!result.meta.changes)
+        throw new Problem('That Survivor selection is already locked.', 409);
+      return json({ ok: true });
+    }
+    if (action === 'survivor-unpick') {
+      const survivorWeek = Number(body.week);
+      if (
+        !Number.isInteger(survivorWeek) ||
+        survivorWeek < 1 ||
+        survivorWeek > 18
+      )
+        throw new Problem('Choose a valid Survivor week.');
+      const result = await db
+        .prepare(
+          `DELETE FROM survivor_picks WHERE league=? AND user=? AND week=? AND EXISTS(SELECT 1 FROM games g WHERE g.week=survivor_picks.week AND survivor_picks.team IN (g.away,g.home) AND g.kickoff>unixepoch('now')*1000 AND g.status='scheduled')`,
+        )
+        .bind(league, u.userId, survivorWeek)
+        .run();
+      if (!result.meta.changes)
+        throw new Problem(
+          'That Survivor selection is already clear or locked.',
+          409,
+        );
+      return json({ ok: true });
+    }
     if (action === 'super-bowl-pick') {
       const settings = await superBowlConfig(league);
       const team = str('team', 3).toUpperCase();
@@ -975,6 +1171,46 @@ export async function POST(req: Request) {
       ]);
       return json({ ok: true });
     }
+    if (action === 'survivor-settings') {
+      await db
+        .prepare('UPDATE leagues SET survivor_enabled=? WHERE id=?')
+        .bind(body.enabled === true ? 1 : 0, league)
+        .run();
+      return json({ ok: true });
+    }
+    if (action === 'sponsor-settings') {
+      const enabled = body.enabled === true;
+      const name = optional('name', 60);
+      const message = optional('message', 180);
+      const logoUrl = webUrl('logoUrl');
+      const linkUrl = webUrl('linkUrl');
+      const startsAt = body.startsAt ? Number(body.startsAt) : null;
+      const endsAt = body.endsAt ? Number(body.endsAt) : null;
+      if (enabled && (!name || !message))
+        throw new Problem('Add a sponsor name and message before enabling it.');
+      if (
+        (startsAt !== null && !Number.isFinite(startsAt)) ||
+        (endsAt !== null && !Number.isFinite(endsAt)) ||
+        (startsAt !== null && endsAt !== null && startsAt >= endsAt)
+      )
+        throw new Problem('Choose a valid sponsor date range.');
+      await db
+        .prepare(
+          'UPDATE leagues SET sponsor_enabled=?,sponsor_name=?,sponsor_message=?,sponsor_logo_url=?,sponsor_link_url=?,sponsor_starts_at=?,sponsor_ends_at=? WHERE id=?',
+        )
+        .bind(
+          enabled ? 1 : 0,
+          name || null,
+          message || null,
+          logoUrl || null,
+          linkUrl || null,
+          startsAt,
+          endsAt,
+          league,
+        )
+        .run();
+      return json({ ok: true });
+    }
     if (action === 'super-bowl-settings') {
       const lockWeek = Number(body.lockWeek);
       const points = Number(body.points);
@@ -1018,6 +1254,9 @@ export async function POST(req: Request) {
           .bind(league, member),
         db
           .prepare('DELETE FROM outright_picks WHERE league=? AND user=?')
+          .bind(league, member),
+        db
+          .prepare('DELETE FROM survivor_picks WHERE league=? AND user=?')
           .bind(league, member),
         db
           .prepare('DELETE FROM members WHERE league=? AND user=?')
